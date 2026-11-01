@@ -1,7 +1,7 @@
 /**
  * Publica o Worker na conta Cloudflare de quem executa (wrangler login).
- * Uso: CLOUDFLARE_D1_DATABASE_ID=<id> npm run deploy:cloudflare
- * Opcional: WORKER_NAME (padrão hanne-essencial), D1_DATABASE_NAME (padrão hanne-essencial-db) e CLOUDFLARE_KV_MEDIA_ID (anexos do WhatsApp).
+ * Uso: npm run deploy:cloudflare (na Cloudflare Workers Builds: comando de deploy `node scripts/deploy-cloudflare.mjs`).
+ * Opcional: CLOUDFLARE_D1_DATABASE_ID, WORKER_NAME (padrão projeto-salao), D1_DATABASE_NAME (padrão hanne-essencial-db) e CLOUDFLARE_KV_MEDIA_ID (anexos do WhatsApp).
  * Etapas: build Vinext → ajusta dist/server/wrangler.json com o D1 real → aplica migrações remotas → deploy.
  * Segredos (SETUP_TOKEN, WHATSAPP_ENCRYPTION_KEY...) são definidos à parte com `wrangler secret put`; veja DEPLOY.md.
  */
@@ -11,11 +11,12 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const databaseId = process.env.CLOUDFLARE_D1_DATABASE_ID || '';
-const workerName = process.env.WORKER_NAME || 'hanne-essencial';
+// Padrões: recursos já criados na conta do ateliê (IDs não são segredos).
+const databaseId = process.env.CLOUDFLARE_D1_DATABASE_ID || 'cc1e2021-1f8e-4acc-81de-5434c52baac9';
+const workerName = process.env.WORKER_NAME || 'projeto-salao';
 const databaseName = process.env.D1_DATABASE_NAME || 'hanne-essencial-db';
 // KV dos anexos do WhatsApp (opcional): crie com `npx wrangler kv namespace create hanne-essencial-media`.
-const mediaKvId = process.env.CLOUDFLARE_KV_MEDIA_ID || '';
+const mediaKvId = process.env.CLOUDFLARE_KV_MEDIA_ID || '28c1e889cf1c42e1ab0159e211736d68';
 const skipBuild = process.argv.includes('--skip-build');
 const dryRun = process.argv.includes('--dry-run');
 

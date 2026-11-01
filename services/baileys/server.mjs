@@ -20,7 +20,7 @@
 import { mkdir, writeFile, readFile, rm, readdir, stat, access } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
-import makeWASocket, { useMultiFileAuthState as loadAuthState, DisconnectReason, downloadMediaMessage, normalizeMessageContent, jidNormalizedUser, generateMessageIDV2, fetchLatestWaWebVersion } from 'baileys';
+import makeWASocket, { useMultiFileAuthState as loadAuthState, DisconnectReason, downloadMediaMessage, normalizeMessageContent, jidNormalizedUser, generateMessageIDV2, fetchLatestWaWebVersion, Browsers, DEFAULT_CONNECTION_CONFIG } from 'baileys';
 import QRCode from 'qrcode';
 import pino from 'pino';
 import { openStore } from './store.mjs';
@@ -130,9 +130,13 @@ async function start() {
   starting = true; status = 'reconnecting';
   try {
     const { state, saveCreds } = await loadAuthState(AUTH);
-    // Usa a versão atual do WhatsApp Web quando disponível; se falhar, fica com a padrão da biblioteca.
+    // Versão do WhatsApp: a mais nova entre a da biblioteca e a publicada no WhatsApp Web (versão velha faz o
+    // WhatsApp avisar as clientes ou recusar a conexão). O conector se apresenta como WhatsApp Desktop no Mac.
     const latest = await fetchLatestWaWebVersion({ signal: AbortSignal.timeout(5000) }).catch(() => null);
-    const own = socket = makeWASocket({ auth: state, logger, ...(latest?.version ? { version: latest.version } : {}), syncFullHistory: false, markOnlineOnConnect: false, shouldIgnoreJid: jid => jid.endsWith('@g.us') || jid === 'status@broadcast' });
+    const builtIn = DEFAULT_CONNECTION_CONFIG?.version || [0, 0, 0];
+    const newer = (a, b) => { for (let i = 0; i < 3; i++) if ((a?.[i] || 0) !== (b?.[i] || 0)) return (a?.[i] || 0) > (b?.[i] || 0); return false; };
+    const version = latest?.version && newer(latest.version, builtIn) ? latest.version : builtIn;
+    const own = socket = makeWASocket({ auth: state, logger, version, browser: Browsers.macOS('Desktop'), syncFullHistory: false, markOnlineOnConnect: false, shouldIgnoreJid: jid => jid.endsWith('@g.us') || jid === 'status@broadcast' });
     own.ev.on('creds.update', saveCreds);
     own.ev.on('connection.update', async update => {
       if (socket !== own) return;

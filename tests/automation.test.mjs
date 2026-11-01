@@ -157,3 +157,19 @@ test('atualização rápida: a revisão muda a cada novidade e /updates responde
   assert.equal(waited.command, 'logout', 'comando chega durante a espera');
   assert.equal(waited.interval, 0);
 });
+
+test('enviar para um número: começa a conversa (sem virar pendência) ou usa a existente, com ou sem o 9', async () => {
+  const env = await setup();
+  const form = (to, id, text = 'Oi! Preciso de algumas informações.') => { const f = new FormData(); f.set('requestId', id); f.set('to', to); f.set('name', 'Iasmin Souza'); f.set('text', text); return f; };
+  let r = await handleWhatsApp(req('send', 'POST', form('+5541995170049', 'req-numero-123456789')), env);
+  assert.equal(r.status, 200);
+  let t = thread(env); assert.equal(t.peer, '+5541995170049'); assert.equal(t.name, 'Iasmin Souza'); assert.equal(t.resolved, 1, 'conversa começada pelo ateliê não é pendência');
+  assert.equal((await sync(env, {})).outbox[0].to, '+5541995170049');
+  // Mesmo número escrito sem o 9: reaproveita a conversa.
+  r = await handleWhatsApp(req('send', 'POST', form('+554195170049', 'req-numero-223456789', 'Outra')), env);
+  assert.equal(r.status, 200); assert.equal(env.DB.sqlite.prepare('SELECT count(*) n FROM wa_threads').get().n, 1);
+  // A resposta da cliente reabre a pendência.
+  await sync(env, { events: [{ id: 'resp-1', type: EVENTS[0], whatsappInboundMessage: { id: 'wa-resp-1', from: '+5541995170049', to: sender, type: 'text', text: { body: 'Claro!' }, sendTime: new Date().toISOString() } }] });
+  assert.equal(thread(env).resolved, 0);
+  assert.equal((await handleWhatsApp(req('send', 'POST', form('123', 'req-numero-323456789')), env)).status, 400);
+});

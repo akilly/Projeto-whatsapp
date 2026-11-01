@@ -169,19 +169,25 @@ test('exclusão de mensagem e conversa exige confirmação e conta certa, preser
   assert.equal(env.DB.sqlite.prepare('SELECT count(*) n FROM wa_threads').get().n, 0);
 });
 
-test('IA classifica sozinha as conversas com mensagem nova, uma vez por mensagem, sem travar a lista', async () => {
+test('IA lê a solicitação na sincronização (não na lista), uma vez por mensagem; falha não trava nada', async () => {
   const { env } = await setup();
   const calls = [];
-  env.AI = { run: async (model, input) => { calls.push(input.messages.at(-1).content); return { response: { category: 'Agendamento urgente', priority: 'alta', reason: 'Quer horário amanhã.' } }; } };
-  await sync(env, { status: 'ready', phone: sender, events: [{ ...inbound, whatsappInboundMessage: { ...inbound.whatsappInboundMessage, text: { body: 'Tem horário amanhã cedo?' } } }] });
+  env.AI = { run: async (model, input) => { calls.push(input.messages.at(-1).content); return { response: { category: 'Agendamento urgente', priority: 'alta', reason: 'Quer horário amanhã.', request: 'Quer horário amanhã cedo.', has_request: true } }; } };
+  const old = new Date(Date.now() - 30000).toISOString();
+  await sync(env, { status: 'ready', phone: sender, events: [{ ...inbound, whatsappInboundMessage: { ...inbound.whatsappInboundMessage, text: { body: 'Tem horário amanhã cedo?' }, sendTime: old } }] });
+  await sync(env, { status: 'ready', phone: sender });
   const first = await (await handleWhatsApp(req('threads'), env)).json();
   assert.equal(first.threads[0].ai_category, 'Agendamento urgente'); assert.equal(first.threads[0].ai_priority, 'alta');
+  assert.equal(first.threads[0].ai_request, 'Quer horário amanhã cedo.'); assert.equal(first.threads[0].ai_intent, 1);
   assert.match(calls[0], /Cliente: Tem horário amanhã cedo\?/);
-  await handleWhatsApp(req('threads'), env);
+  await sync(env, { status: 'ready', phone: sender }); await handleWhatsApp(req('threads'), env);
   assert.equal(calls.length, 1, 'sem mensagem nova, não chama a IA de novo');
-  // Falha da IA não quebra a lista e não fica tentando a cada atualização.
+  // Mensagem recém-chegada espera alguns segundos (a cliente pode estar mandando outra).
+  await sync(env, { status: 'ready', phone: sender, events: [{ ...inbound, id: 'in-3', whatsappInboundMessage: { ...inbound.whatsappInboundMessage, id: 'wa-in-3', text: { body: 'E sábado?' }, sendTime: new Date().toISOString() } }] });
+  assert.equal(calls.length, 1);
+  // Falha da IA não quebra a sincronização: segue com a regra simples.
   env.AI = { run: async () => { throw Error('falhou'); } };
-  await sync(env, { status: 'ready', phone: sender, events: [{ ...inbound, id: 'in-2', whatsappInboundMessage: { ...inbound.whatsappInboundMessage, id: 'wa-in-2', sendTime: new Date(Date.now() + 1000).toISOString() } }] });
-  const after = await handleWhatsApp(req('threads'), env); assert.equal(after.status, 200);
-  const t = env.DB.sqlite.prepare('SELECT ai_at,last_inbound FROM wa_threads').get(); assert.equal(t.ai_at, t.last_inbound);
+  env.DB.sqlite.prepare('UPDATE wa_threads SET last_inbound=?', ).run(new Date(Date.now() - 20000).toISOString());
+  assert.equal((await sync(env, { status: 'ready', phone: sender })).status, 200);
+  const t = env.DB.sqlite.prepare('SELECT ai_at,last_inbound,ai_intent FROM wa_threads').get(); assert.equal(t.ai_at, t.last_inbound); assert.equal(t.ai_intent, 1);
 });

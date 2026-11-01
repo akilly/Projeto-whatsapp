@@ -10,6 +10,7 @@ import { deletionPlan, allCollections } from './deletion.js';
 import { destinationHref, parseDestination, validCalendarDate, recordPage } from './navigation.js';
 import { waURL, waPhone, waMessages } from './wa-link.js';
 import { createWhatsAppUI } from './whatsapp.js';
+import { createAutomationPage } from './automation.js';
 import { preferredTheme, applyTheme } from './theme.js';
 import { blankState, stockOf, stockEntry, recost, lowStock as lowStockOf, validateState, cents, amount, qty, QUOTE_STATUS, PRIORITIES, TASK_AREAS, MOVEMENT_TYPES, makeContact, contactIssue, knownContacts, sameContact, phoneDigits } from './domain.js';
 import { localDate, csvCell } from './core.js';
@@ -75,10 +76,15 @@ const whatsapp = createWhatsAppUI({ esc, btn: (...args) => btn(...args), field: 
     aiRun: (...args) => aiRun(...args), aiContext: (phone, name) => aiContext({ name, phone }), categoryColor: cat => categoryColor(cat),
     isExample: () => dataset === 'example',
     onCreate: (kind, data) => createFromWhatsApp(kind, data),
+    related: threadId => relatedToWhatsApp(threadId),
+    openAutomation: () => go('automation'),
     confirmLeaving: proceed => confirmLeaving('Há um rascunho de mensagem. Deseja sair desta tela?', proceed),
     onPending: count => { whatsappPending = count; for (const el of document.querySelectorAll?.('[data-pending-total]') || []) { const total = pendingConvs().length + count; el.textContent = total; el.hidden = !total; } for (const el of document.querySelectorAll?.('[data-wa-pending]') || []) el.textContent = count; for (const el of document.querySelectorAll?.('[data-indicator="pending-conversations"]') || []) el.textContent = pendingConvs().length + count; }
 });
 whatsapp.install();
+// Painel Automação (boas-vindas, estou ocupada e assuntos), salvo no servidor junto do canal WhatsApp.
+const automationPanel = createAutomationPage({ esc, btn: (...args) => btn(...args), heading: (...args) => heading(...args), toast, isExample: () => dataset === 'example', onSaved: config => whatsapp.automationChanged(config), rerender: () => { if (ui.page === 'automation') { const y = window.scrollY; render(); window.scrollTo?.(0, y); } } });
+automationPanel.install();
 let currentDetailTarget = null, leaveConfirmation = null, modalOpener = null, modalReturnHref = null;
 
 /** Explica as ações e os conceitos da tela atual, sem exigir a leitura de um manual separado. */
@@ -90,6 +96,7 @@ function pageGuide() {
         tasks: ['Use para lembrar atividades que precisam de acompanhamento.', [['Pendente', 'Atividade ainda não concluída. Prazo passado aparece como atraso.'], ['Concluir', 'Marque o círculo quando terminar; a atividade fica no filtro Concluídas.'], ['Vínculos', 'A tarefa pode guardar o contato, a conversa de origem e o orçamento relacionado.']]],
         inventory: ['Cadastre o saldo real dos produtos e registre entradas e saídas quando acontecerem.', [['Saldo inicial', 'Quantidade que já existe, inclusive embalagens abertas, em g, ml ou unidades.'], ['Entrada e uso', 'Entrada soma ao estoque (com custo, se souber). Uso e perda reduzem o saldo. Tudo é lançado à mão.'], ['Custo a conferir', 'Significa que falta informação de custo; não é tratado como custo zero.']]],
         services: ['Mantenha o catálogo com descrição, duração e orientações.', [['Catálogo', 'Os serviços aparecem nos orçamentos.'], ['Orientações', 'Antes e depois do procedimento: úteis para responder às clientes.'], ['Excluir', 'Orçamentos que usavam o serviço guardam o nome dele.']]],
+        automation: ['Defina o que o sistema responde sozinho no WhatsApp e como as conversas são separadas.', [['Boas-vindas', 'Quando a cliente só cumprimenta, pergunta como pode ajudar depois do tempo escolhido.'], ['Estou ocupada', 'Ligue o seletor quando não puder responder: quem disser o que precisa recebe o aviso.'], ['Assuntos', 'A IA usa esta lista para separar as conversas e resumir a solicitação de cada cliente.']]],
         settings: ['Ajuste aparência, conta, salões e conexões.', [['Seus dados', 'Confira o indicador de sincronização. Os exemplos e os dados reais ficam em bases separadas.'], ['Salões', 'Cada salão tem login e dados próprios.'], ['Cópias', 'Exporte CSV, PDF ou a cópia completa JSON.']]]
     };
     const guide = guides[ui.page];
@@ -295,6 +302,7 @@ function navigateTo(target, { replace = false, restored = null, discarded = fals
     if (restored) Object.assign(ui, restored);
     else {
         ui.page = target.page; ui.mobile = false; ui.threadOpen = false;
+        if (target.page === 'automation') automationPanel.opened();
         if (target.page === 'inventory') { ui.inventoryTab = target.tab === 'movements' ? 'movements' : 'products'; ui.inventoryScope = ['low', 'unknown'].includes(target.scope) ? target.scope : ''; ui.inventoryPageIndex = Number(target.p) || 1; }
         if (target.page === 'quotes' && target.scope !== undefined) ui.quoteFilter = QUOTE_STATUS[target.scope] || target.scope === 'open' ? target.scope : 'all';
         if (target.page === 'tasks' && target.scope !== undefined) ui.taskFilter = ['done', 'all', 'late'].includes(target.scope) ? target.scope : 'open';
@@ -314,7 +322,7 @@ window.addEventListener('popstate', e => {
     navigateTo(target, { replace: true, restored: e.state?.hanneUI || null, scrollY: e.state?.scrollY || 0 });
 });
 // Destinos e ícones da navegação principal.
-const navItems = [['dashboard', 'grid', 'Visão geral'], ['conversations', 'chat', 'Atendimentos'], ['quotes', 'file', 'Orçamentos'], ['tasks', 'checklist', 'Tarefas'], ['inventory', 'leaf', 'Estoque'], ['services', 'scissors', 'Serviços']];
+const navItems = [['dashboard', 'grid', 'Visão geral'], ['conversations', 'chat', 'Atendimentos'], ['quotes', 'file', 'Orçamentos'], ['tasks', 'checklist', 'Tarefas'], ['inventory', 'leaf', 'Estoque'], ['services', 'scissors', 'Serviços'], ['automation', 'spark', 'Automação']];
 function render() {
     const pageName = navItems.find(n => n[0] === ui.page)?.[2] || 'Configurações';
     const pendingTotal = pendingConvs().length + whatsappPending;
@@ -403,6 +411,11 @@ function contactFields(contact, { required = true, label = 'Contato' } = {}) {
     return `<label class="field"><span>${label}${required ? '' : ' (opcional)'}</span><input name="contactName" value="${esc(contact?.name || '')}" maxlength="100" list="contact-options" autocomplete="off" data-input="contact-name" ${required ? 'required' : ''} placeholder="Nome"></label><label class="field"><span>Telefone / WhatsApp (opcional)</span><input name="contactPhone" type="tel" inputmode="tel" value="${esc(contact?.phone || '')}" maxlength="30" placeholder="(41) 90000-0000"></label><datalist id="contact-options">${options}</datalist>`;
 }
 const formContact = (val, required) => { const c = makeContact(val('contactName'), val('contactPhone')), issue = contactIssue(c, { required }); if (issue) throw Error(issue); return c; };
+/** Orçamentos e tarefas criados a partir de uma conversa do WhatsApp (mostrados em Ferramentas, na conversa). */
+function relatedToWhatsApp(threadId) {
+    const linked = x => x.origin?.type === 'whatsapp' && x.origin.id === threadId;
+    return [...state.quotes.filter(linked).map(q => `<button type="button" class="task-row attention-button" data-action="edit-quote" data-id="${q.id}">${icon('file')}<span class="grow">Orçamento · ${esc(serviceLabel(q))}</span>${pill(QUOTE_STATUS[q.status], 'gray')}</button>`), ...state.tasks.filter(linked).map(t => `<button type="button" class="task-row attention-button" data-action="edit-task" data-id="${t.id}">${icon('checklist')}<span class="grow">Tarefa · ${esc(t.title)}</span>${pill(t.done ? 'Concluída' : 'Pendente', t.done ? 'green' : 'orange')}</button>`)].join('');
+}
 /** Abre orçamento ou tarefa já ligado à conversa do WhatsApp. */
 function createFromWhatsApp(kind, { name, phone, threadId, summary }) {
     const digits = phoneDigits(phone), contact = { name: name || 'Contato do WhatsApp', phone: digits.length >= 10 && digits.length <= 15 ? phone : '' }, origin = { type: 'whatsapp', id: threadId };
@@ -521,7 +534,7 @@ function movementEditForm(id) {
 function settingsPage() {
     return `${heading('Configurações', 'Aparência, conta, salões e conexões.')}<div class="toolbar">${btn('Exportar dados', 'export-modal', 'download', 'secondary')}${btn('Cópia completa JSON', 'backup', 'download', 'secondary')}${dataset === 'real' && baseIsEmpty() ? btn('Restaurar cópia JSON', 'v14-restore', 'upload', 'secondary') : ''}${btn(dataset === 'example' ? 'Voltar aos dados reais' : 'Ver demonstração', 'v3-dataset', 'spark', 'text', `data-dataset="${dataset === 'example' ? 'real' : 'example'}"`)}</div><section class="card appearance-card"><div><span class="eyebrow">Deixe confortável para você</span><h2>Aparência</h2><p>Escolha entre claro e escuro suave. Sua escolha fica salva neste dispositivo.</p></div>${themeControl()}</section><div class="settings-grid"><section class="card settings-card"><h2>Seu ateliê</h2><form novalidate data-form="settings"><div class="form-grid">${field('Como prefere ser chamada?', 'name', state.settings.name, 'text', 'required maxlength="50"', true)}${field('Prazo de resposta de referência (min)', 'responseMinutes', state.settings.responseMinutes ?? 60, 'number', 'required min="5" max="1440"', true)}<div id="settings-error" role="alert" class="full small" style="color:var(--red)"></div><div class="full"><button type="submit" class="btn primary">Salvar</button></div></div></form></section><section class="card settings-card" id="conta"><h2>Sua conta</h2><div class="setting-row account-row"><div><strong>${esc(accountEmail || 'Sua conta')}</strong><p>${accountRole === 'admin' ? 'Titular. ' : ''}Entrada com e-mail e senha. Trocar a senha encerra o acesso nos outros aparelhos.</p></div><div class="row wrap gap8">${btn('Trocar e-mail', 'change-email', 'edit', 'secondary sm')}${btn('Trocar senha', 'change-password', 'lock', 'secondary sm')}<a class="btn secondary sm" href="/login" data-salon-logout>${icon('arrow')}Sair da conta</a></div></div></section>${salonsSection()}<section class="card settings-card"><h2>Conexões e acesso</h2><div class="setting-row"><div><strong>Dados persistentes</strong><p>Registros vinculados à conta autenticada, com conferência de versão para alterações simultâneas.</p></div>${pill(syncStatus === 'saved' ? 'Sincronizado' : 'Conferir', syncStatus === 'saved' ? 'green' : 'orange')}</div><div class="setting-row"><div><strong>WhatsApp Business</strong><p>O conector Baileys permite vincular por QR Code e receber e enviar textos, imagens e áudios. Requer o computador do ateliê ligado. Confira a conexão em Atendimentos → WhatsApp.</p></div>${btn('Configurar', 'integrations', 'link', 'secondary sm')}</div><div class="setting-row"><div><strong>Inteligência artificial</strong><p>${aiStatus?.enabled ? `Classificação automática das conversas do WhatsApp, resumo e sugestão de resposta (Workers AI). Hoje: ${aiStatus.usage?.classify || 0} classificações, ${(aiStatus.usage?.summary || 0) + (aiStatus.usage?.reply || 0)} resumos/respostas. A IA só sugere; nada é enviado sem você.` : 'Classificação, resumo e sugestão de resposta com o Workers AI (gratuito até a cota diária). No computador, ligue com CONFIGURAR-IA.cmd; na nuvem, já vem ativa.'}</p></div>${pill(aiStatus?.enabled ? 'Ativa' : aiStatus ? 'Desligada' : 'Verificando', aiStatus?.enabled ? 'green' : 'gray')}</div></section><section class="card settings-card full"><h2>Histórico de ações confirmadas</h2><p class="small muted">As alterações salvas ficam registradas no servidor. Última sincronização: ${lastSavedAt ? new Date(lastSavedAt).toLocaleString('pt-BR') : 'nenhuma alteração ainda'}.</p>${state.audit.slice(0, 8).map(a => `<div class="audit-row">${esc(a.action)}<time>${new Date(a.at).toLocaleString('pt-BR')} · ${esc(a.by)}</time></div>`).join('') || empty('O histórico começa com sua primeira alteração.')}${state.audit.length ? btn('Histórico completo', 'audit', 'arrow', 'text') : ''}</section></div>`;
 }
-function renderPage() { return ({ dashboard, conversations: conversationsPage, quotes: quotesPage, services: servicesPage, inventory: inventoryPage, tasks: tasksPage, settings: settingsPage }[ui.page] || dashboard)(); }
+function renderPage() { return ({ dashboard, conversations: conversationsPage, quotes: quotesPage, services: servicesPage, inventory: inventoryPage, tasks: tasksPage, automation: () => automationPanel.page(), settings: settingsPage }[ui.page] || dashboard)(); }
 function help() {
     modal('Uma rotina mais simples', `<div class="dialog-body skeleton-help"><p class="notice">${dataset === 'example' ? 'Você está na base de exemplos, separada dos dados reais.' : 'Os registros pertencem à sua conta. Confira o indicador de sincronização antes de sair.'}</p><div class="help-list section-gap"><div><strong>1. Conecte o WhatsApp</strong>Em Atendimentos → WhatsApp, instale o conector no computador do ateliê e leia o QR Code. Pedidos de outros canais entram como notas internas.</div><div><strong>2. Responda com calma</strong>A IA classifica, resume e sugere respostas. Você revisa e envia.</div><div><strong>3. Transforme em orçamento ou tarefa</strong>Na conversa, toque em Criar orçamento ou Criar tarefa: o contato e o vínculo com a conversa já vêm preenchidos.</div><div><strong>4. Cuide do estoque</strong>Cadastre os produtos com o saldo atual e lance entradas, usos e perdas quando acontecerem.</div><div><strong>5. Mantenha o catálogo</strong>Serviços com descrição, duração e orientações ajudam nas respostas e nos orçamentos.</div></div><p class="notice section-gap">Cada tela traz “Como usar esta tela”, com explicações sobre suas ações.</p></div>`);
 }

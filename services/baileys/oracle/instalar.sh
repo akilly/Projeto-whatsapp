@@ -59,9 +59,42 @@ $SUDO chmod 600 "$DIR/.env"
 
 say "5/5 Subindo o conector"
 cd "$DIR"
-$SUDO docker compose up -d --build
-sleep 5
-$SUDO docker compose logs --tail 5
+# Só recompila quando o código mudou (a atualização automática roda todo dia).
+HASH="$(cat Dockerfile docker-compose.yml package.json package-lock.json server.mjs store.mjs | sha256sum | cut -d' ' -f1)"
+if [ "$HASH" != "$(cat .versao 2>/dev/null)" ] || [ -z "$($SUDO docker compose ps -q --status running 2>/dev/null)" ]; then
+  $SUDO docker compose up -d --build
+  printf '%s' "$HASH" | $SUDO tee .versao >/dev/null
+  sleep 5
+  $SUDO docker compose logs --tail 5
+else
+  echo "Conector já está na versão mais recente."
+fi
+
+# Atualização automática: todo dia às 4h30 (Brasília) busca a versão nova do conector, mantendo chave e sessão.
+if command -v systemctl >/dev/null 2>&1 && [ -d /etc/systemd/system ]; then
+  $SUDO tee /etc/systemd/system/hanne-atualizar.service >/dev/null <<UNIT
+[Unit]
+Description=Atualiza o conector do WhatsApp do Hanne
+After=network-online.target docker.service
+Wants=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'curl -fsSL https://raw.githubusercontent.com/akilly/Projeto-whatsapp/main/services/baileys/oracle/instalar.sh | bash >> /var/log/hanne-atualizacao.log 2>&1'
+UNIT
+  $SUDO tee /etc/systemd/system/hanne-atualizar.timer >/dev/null <<UNIT
+[Unit]
+Description=Atualização diária do conector do WhatsApp do Hanne
+[Timer]
+OnCalendar=*-*-* 07:30:00 UTC
+OnBootSec=10min
+RandomizedDelaySec=15min
+Persistent=true
+[Install]
+WantedBy=timers.target
+UNIT
+  $SUDO systemctl daemon-reload
+  $SUDO systemctl enable --now hanne-atualizar.timer >/dev/null 2>&1 || true
+fi
 
 cat <<MSG
 
@@ -78,6 +111,6 @@ cat <<MSG
    WhatsApp Business → Aparelhos conectados → Conectar aparelho
 
  Ver o andamento:  cd $DIR && sudo docker compose logs -f
- Atualizar:        rode este mesmo comando de instalação de novo.
+ Atualizar:        automático, todo dia às 4h30 (ou rode este comando de novo).
 ==================================================================
 MSG

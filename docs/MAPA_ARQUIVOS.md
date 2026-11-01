@@ -21,6 +21,7 @@ O que cada arquivo versionado faz. Cada módulo também tem um comentário de ca
 | `lib/state-handler.mjs` | Persistência do estado no D1 com revisão otimista, auditoria, base de demonstração isolada e exclusão por plano confirmado |
 | `lib/salon-auth.mjs` | Contas dos salões (titular + convidados): PBKDF2, sessões opacas, limite de tentativas, links por e-mail (primeiro acesso, nova senha, convite, troca de e-mail), confirmação de senha para exclusões |
 | `lib/ai.mjs` | IA (Workers AI): prompts, validação das respostas, limite diário e rota |
+| `lib/automation.mjs` | Regras da automação: configuração padrão, saudação pura, `{nome}` e quando enviar boas-vindas / estou ocupada |
 | `lib/mailer.mjs` | Envio de e-mails pelo Brevo e modelo do e-mail de acesso |
 | `lib/security-headers.mjs` | Cabeçalhos de segurança das páginas (CSP, anti-iframe, Referrer-Policy, HSTS) |
 | `lib/whatsapp-handler.mjs` | Canal de WhatsApp: conexão, conversas, envio, anexos, sincronização do conector Baileys e webhook da Meta |
@@ -39,7 +40,9 @@ O que cada arquivo versionado faz. Cada módulo também tem um comentário de ca
 | `core.js` | Data de Brasília, soma de dias e células CSV |
 | `navigation.js` | URLs internas (`#page=…`) e paginação |
 | `wa-link.js` | Link wa.me com mensagem pronta |
-| `whatsapp.js` | Caixa do WhatsApp integrada (conector Baileys), com Criar orçamento / Criar tarefa |
+| `whatsapp.js` | Caixa do WhatsApp no estilo do aplicativo (lista por assunto, solicitação em destaque, Enter envia, emojis, áudio, resposta citada) |
+| `automation.js` | Painel Automação (boas-vindas, estou ocupada, assuntos) |
+| `conversas.css` | Visual das conversas (estilo WhatsApp) e do painel Automação |
 | `form-validation.js` | Mensagens de validação em português, sem balões nativos |
 | `theme.js`, `theme-boot.js` | Tema claro/escuro salvo no navegador |
 | `examples.js` | Dados fictícios da demonstração |

@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { handleWhatsApp } from '../lib/whatsapp-handler.mjs';
 import { EVENTS } from '../lib/whatsapp-domain.mjs';
-import { isGreetingOnly, renderTemplate, normalizeConfig, mergeConfig, dueAutomation, firstName, DEFAULT_CONFIG } from '../lib/automation.mjs';
+import { isGreetingOnly, renderTemplate, normalizeConfig, mergeConfig, dueRule, firstName, hasKeyword, withinHours, priorityFor, DEFAULT_RULES } from '../lib/automation.mjs';
 
 const master = btoa('1'.repeat(32)), origin = 'https://hanne.test', sender = '+5511999999999', client = '+5541999999999';
 const bridgeKey = 'test-bridge-key-12345678901234567890';
@@ -32,28 +32,44 @@ async function setup() {
 const thread = env => env.DB.sqlite.prepare('SELECT * FROM wa_threads').get();
 const outs = env => env.DB.sqlite.prepare("SELECT body,auto,status FROM wa_messages WHERE direction='out' ORDER BY at").all().map(m => ({ ...m }));
 
-test('regras puras: saudação, nome na mensagem, configuração e momento de enviar', () => {
+test('regras puras: saudação, nome, configuração, palavras, horário, prioridade e momento de enviar', () => {
   for (const hello of ['oi', 'Oiii!!', 'Bom dia 😊', 'olá, tudo bem?', 'Boa tarde! Tudo bom com você?', 'e aí, blz?', '']) assert.equal(isGreetingOnly([hello]), true, hello);
   for (const ask of ['oi, quanto custa a escova?', 'Bom dia, tem horário amanhã?', 'quero fazer mechas', 'ardeu muito depois da coloração']) assert.equal(isGreetingOnly([ask]), false, ask);
   assert.equal(renderTemplate('Olá, {nome}! Como posso ajudar?', 'maria souza'), 'Olá, Maria! Como posso ajudar?');
   assert.equal(renderTemplate('Olá, {nome}! Como posso ajudar?', '+5541999999999'), 'Olá! Como posso ajudar?');
   assert.equal(firstName('🌸 Ana'), '');
-  const config = normalizeConfig({ greeting: { delay: 5, text: '' }, busy: { enabled: 'sim' }, categories: [{ name: 'Mechas', color: 'roxo' }, { name: 'mechas' }, { name: '' }] });
-  assert.equal(config.greeting.delay, 15, 'espera mínima'); assert.equal(config.greeting.text, DEFAULT_CONFIG.greeting.text);
-  assert.equal(config.busy.enabled, false); assert.deepEqual(config.categories, [{ name: 'Mechas', color: 'gray', description: '' }]);
-  assert.equal(mergeConfig(config, { busy: { enabled: true } }).busy.enabled, true);
-  assert.equal(mergeConfig(config, { busy: { enabled: true } }).categories[0].name, 'Mechas', 'alteração parcial não perde as categorias');
+  assert.ok(hasKeyword(['Qual o ENDEREÇO de vocês?'], ['endereco'])); assert.ok(!hasKeyword(['endereçamento'], ['endereço']));
+  // Sábado 10h e domingo 10h em Brasília (13h UTC).
+  assert.equal(withinHours('2026-10-31T13:00:00Z', { days: [1, 2, 3, 4, 5, 6], start: '09:00', end: '18:00' }), true);
+  assert.equal(withinHours('2026-11-01T13:00:00Z', { days: [1, 2, 3, 4, 5, 6], start: '09:00', end: '18:00' }), false);
+  // Configuração antiga (boas-vindas/ocupada fixas) vira regras, e ganha os assuntos de pagamento com prioridade.
+  const old = normalizeConfig({ greeting: { enabled: true, delay: 180, text: 'Oi {nome}' }, busy: { enabled: true, delay: 5, text: 'Ocupada' }, categories: [{ name: 'Segurança', color: 'red' }, { name: 'Agendamento urgente', color: 'orange', description: 'Quer horário para hoje ou amanhã.' }, { name: 'Orçamento', color: 'purple' }] });
+  assert.deepEqual(old.rules.slice(0, 2).map(r => [r.id, r.enabled, r.delay, r.text]), [['greeting', true, 180, 'Oi {nome}'], ['busy', true, 5, 'Ocupada']]);
+  assert.deepEqual(old.categories.map(c => [c.name, c.priority]), [['Segurança', 'alta'], ['Agendamento urgente', 'alta'], ['Orçamento', 'auto'], ['Pagamento pendente', 'alta'], ['Pagamento realizado', 'alta']]);
+  assert.match(old.categories[1].description, /até 3 dias/);
+  const config = normalizeConfig({ version: 2, rules: [{ id: 'x', name: 'Sem texto', trigger: 'keywords', text: '' }, { trigger: 'category', category: 'Inventado', text: 'Oi' }], categories: [{ name: 'Mechas', color: 'roxo', priority: 'urgente' }] });
+  assert.equal(config.rules.length, 1, 'regra sem mensagem é descartada'); assert.equal(config.rules[0].category, 'Mechas');
+  assert.deepEqual(config.categories, [{ name: 'Mechas', color: 'gray', priority: 'auto', description: '' }]);
+  assert.equal(mergeConfig(normalizeConfig({}), { busy: { enabled: true } }).rules.find(r => r.id === 'busy').enabled, true);
+  assert.equal(priorityFor(normalizeConfig({}), 'Pagamento realizado', 'baixa'), 'alta');
+  assert.equal(priorityFor(normalizeConfig({}), 'Orçamento', 'baixa'), 'baixa', 'assunto "a IA decide" usa a prioridade da IA');
   const t = { last_direction: 'in', last_inbound: ago(200), ai_at: ago(200), ai_intent: 0, episode_at: ago(300) };
   t.ai_at = t.last_inbound;
-  const on = normalizeConfig({ busy: { enabled: true } });
-  assert.equal(dueAutomation(t, on), 'greeting');
-  assert.equal(dueAutomation({ ...t, last_inbound: ago(30), ai_at: ago(30) }, on), null, 'espera a cliente terminar de escrever');
-  assert.equal(dueAutomation({ ...t, auto_greeted: ago(100) }, on), null, 'uma boas-vindas por atendimento');
-  assert.equal(dueAutomation({ ...t, ai_intent: 1 }, on), 'busy');
-  assert.equal(dueAutomation({ ...t, ai_intent: 1 }, normalizeConfig({})), null, 'seletor desligado');
-  assert.equal(dueAutomation({ ...t, ai_at: ago(400) }, on), null, 'ainda não leu a última mensagem');
-  assert.equal(dueAutomation({ ...t, last_direction: 'out' }, on), null);
-  assert.equal(dueAutomation({ ...t, ai_category: 'Spam ou suspeita' }, on), null);
+  const on = mergeConfig(normalizeConfig({}), { busy: { enabled: true } });
+  assert.equal(dueRule(t, on)?.id, 'greeting');
+  assert.equal(dueRule({ ...t, last_inbound: ago(30), ai_at: ago(30) }, on), null, 'espera a cliente terminar de escrever');
+  assert.equal(dueRule(t, on, Date.now(), { sent: { greeting: ago(100) } }), null, 'uma boas-vindas por atendimento');
+  assert.equal(dueRule({ ...t, ai_intent: 1 }, on)?.id, 'busy');
+  assert.equal(dueRule({ ...t, ai_intent: 1 }, normalizeConfig({})), null, 'seletor desligado');
+  assert.equal(dueRule({ ...t, ai_at: ago(400) }, on), null, 'ainda não leu a última mensagem');
+  assert.equal(dueRule({ ...t, last_direction: 'out' }, on), null);
+  assert.equal(dueRule({ ...t, ai_category: 'Spam ou suspeita' }, on), null);
+  assert.equal(dueRule(t, on, Date.now(), { manualReply: true }), null);
+  const rules = normalizeConfig({ version: 2, rules: [{ id: 'end', name: 'Endereço', enabled: true, trigger: 'keywords', keywords: 'endereço, onde fica', text: 'Rua X' }, { id: 'novo', name: 'Novo', enabled: true, trigger: 'first', text: 'Bem-vinda' }] });
+  assert.equal(dueRule({ ...t, ai_at: null }, rules, Date.now(), { texts: ['Onde fica o ateliê?'] })?.id, 'end', 'palavras não esperam a IA');
+  assert.equal(dueRule({ ...t, ai_at: null }, rules, Date.now(), { texts: ['oi'], first: true })?.id, 'novo');
+  assert.equal(dueRule({ ...t, ai_at: null }, rules, Date.now(), { texts: ['oi'] }), null);
+  assert.equal(DEFAULT_RULES.find(r => r.id === 'greeting').delay, 120);
 });
 
 test('só "oi": depois da espera, envia "Como posso ajudar?" uma vez, com o nome do perfil', async () => {
@@ -77,7 +93,7 @@ test('só "oi": depois da espera, envia "Como posso ajudar?" uma vez, com o nome
 test('com o pedido e o seletor ligado: lê a solicitação e envia "estou ocupada" uma vez', async () => {
   const env = await setup();
   env.AI = fakeAI({ category: 'Orçamento', priority: 'normal', reason: 'Pede preço.', request: 'Quer orçamento de mechas.', has_request: true });
-  assert.equal((await handleWhatsApp(req('automation', 'POST', { busy: { enabled: true, delay: 0 } }), env)).status, 200);
+  assert.equal((await handleWhatsApp(req('automation', 'POST', { rules: DEFAULT_RULES.map(r => r.id === 'busy' ? { ...r, enabled: true, delay: 0 } : r) }), env)).status, 200);
   const r = await sync(env, { events: [message('Oi! Quanto fica mechas?', { secondsAgo: 10 })] });
   assert.equal(r.outbox.length, 1); assert.match(r.outbox[0].text, /^Certo, no momento estou ocupada, assim que estiver disponível te envio uma mensagem\./);
   const t = thread(env);
@@ -88,27 +104,45 @@ test('com o pedido e o seletor ligado: lê a solicitação e envia "estou ocupad
 
 test('se a profissional já respondeu no atendimento, a automação não envia nada', async () => {
   const env = await setup();
-  await handleWhatsApp(req('automation', 'POST', { busy: { enabled: true, delay: 0 } }), env);
+  await handleWhatsApp(req('automation', 'POST', { rules: DEFAULT_RULES.map(r => r.id === 'busy' ? { ...r, enabled: true, delay: 0 } : r) }), env);
   await sync(env, { events: [message('quero marcar escova', { secondsAgo: 60 }), echo('Oi! Já te respondo.', 50), message('pode ser sábado?', { secondsAgo: 40 })] });
   await sync(env, {}); await sync(env, {});
   assert.deepEqual(outs(env).map(m => m.auto), [null]);
 });
 
-test('boas-vindas e "estou ocupada" ficam no painel; salvar parcial não apaga o resto', async () => {
+test('painel: regras e assuntos salvos por salão; ligar uma regra não apaga o resto; assunto à mão', async () => {
   const env = await setup();
-  const saved = await (await handleWhatsApp(req('automation', 'POST', { greeting: { text: 'Oi {nome}, em que posso ajudar?', delay: 180 }, categories: [{ name: 'Mechas', color: 'purple' }, { name: 'Outros', color: 'gray' }] }), env)).json();
-  assert.equal(saved.config.greeting.delay, 180);
-  await handleWhatsApp(req('automation', 'POST', { busy: { enabled: true } }), env);
+  const custom = [{ id: 'greeting', name: 'Boas-vindas', enabled: true, trigger: 'greeting', delay: 180, text: 'Oi {nome}, em que posso ajudar?' }, { id: 'end', name: 'Endereço', enabled: false, trigger: 'keywords', keywords: ['endereço'], text: 'Rua X' }];
+  const saved = await (await handleWhatsApp(req('automation', 'POST', { rules: custom, categories: [{ name: 'Mechas', color: 'purple', priority: 'alta' }, { name: 'Outros', color: 'gray' }] }), env)).json();
+  assert.equal(saved.config.rules[0].delay, 180);
+  await handleWhatsApp(req('automation', 'POST', { toggle: { id: 'end', enabled: true } }), env);
   const { config } = await (await handleWhatsApp(req('automation'), env)).json();
-  assert.equal(config.busy.enabled, true); assert.equal(config.greeting.text, 'Oi {nome}, em que posso ajudar?'); assert.deepEqual(config.categories.map(c => c.name), ['Mechas', 'Outros']);
-  assert.equal((await handleWhatsApp(req('automation', 'GET', null, 'b'), env)).status, 200);
-  assert.equal((await (await handleWhatsApp(req('automation', 'GET', null, 'b'), env)).json()).config.busy.enabled, false, 'cada salão tem a sua');
-  // Categoria à mão precisa existir na lista e a IA não troca depois.
+  assert.equal(config.rules[1].enabled, true); assert.equal(config.rules[0].text, 'Oi {nome}, em que posso ajudar?'); assert.deepEqual(config.categories.map(c => [c.name, c.priority]), [['Mechas', 'alta'], ['Outros', 'auto']]);
+  assert.equal((await (await handleWhatsApp(req('automation', 'GET', null, 'b'), env)).json()).config.rules.find(r => r.id === 'busy').enabled, false, 'cada salão tem a sua');
   await sync(env, { events: [message('oi', { secondsAgo: 1 })] });
   const id = thread(env).id;
   assert.equal((await handleWhatsApp(req('thread/' + id, 'POST', { category: 'Inventada' }), env)).status, 400);
   assert.equal((await handleWhatsApp(req('thread/' + id, 'POST', { category: 'Mechas' }), env)).status, 200);
   assert.equal(thread(env).ai_category, 'Mechas'); assert.equal(thread(env).category_manual, 1);
+});
+
+test('regras novas: palavras-chave e assunto respondem; prioridade vem do assunto; nota interna não sai', async () => {
+  const env = await setup();
+  env.AI = fakeAI({ category: 'Pagamento realizado', priority: 'baixa', reason: 'Mandou comprovante.', request: 'Enviou o comprovante do Pix.', has_request: true });
+  const rules = [...DEFAULT_RULES.map(r => r.id === 'paid' ? { ...r, enabled: true, delay: 0 } : r), { id: 'end', name: 'Endereço', enabled: true, trigger: 'keywords', keywords: ['endereço'], delay: 0, text: 'Rua das Flores, 10' }];
+  await handleWhatsApp(req('automation', 'POST', { rules }), env);
+  let r = await sync(env, { events: [message('Paguei! Segue o comprovante', { secondsAgo: 10 })] });
+  assert.equal(r.outbox[0]?.text, 'Recebi, Maria! Obrigada 💜 Vou conferir e já te confirmo.');
+  assert.equal(thread(env).ai_priority, 'alta', 'Pagamento realizado é sempre alta');
+  r = await sync(env, { events: [message('E qual o endereço?', { secondsAgo: 0 })] });
+  assert.equal(r.outbox[0]?.text, 'Rua das Flores, 10');
+  await sync(env, {}); assert.equal(outs(env).length, 2, 'cada regra uma vez');
+  const id = thread(env).id;
+  const note = await (await handleWhatsApp(req('thread/' + id, 'POST', { note: 'Cliente prefere sábado de manhã.' }), env)).json();
+  assert.equal(note.message.direction, 'note');
+  assert.equal((await sync(env, {})).outbox.length, 0, 'nota não vai para o conector');
+  assert.equal((await (await handleWhatsApp(req('thread/' + id), env)).json()).messages.at(-1).body, 'Cliente prefere sábado de manhã.');
+  assert.equal((await handleWhatsApp(req('thread/' + id, 'POST', { note: '  ' }), env)).status, 400);
 });
 
 test('nome: salvo no celular, senão o do perfil; eco do celular não troca o nome; não lidas e prévia', async () => {

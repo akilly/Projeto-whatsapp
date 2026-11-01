@@ -11,5 +11,11 @@ services:
       DATA_DIR: /data
     volumes:
       - hanne-whatsapp-data:/data
+    # Limita o log a 3 arquivos de 10 MB para não encher o disco do servidor.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
   hanne-whatsapp-data:

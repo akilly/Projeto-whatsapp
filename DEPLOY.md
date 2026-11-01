@@ -2,6 +2,32 @@
 
 O sistema é um Worker (Vinext) com banco D1. O plano gratuito da Cloudflare atende o uso de uma profissional. Os passos abaixo são feitos uma única vez no computador de quem administra a conta.
 
+## Caminho recomendado: publicação automática pelo GitHub (já preparado)
+
+Já existe na conta Cloudflare:
+
+| Recurso | Nome | ID |
+|---|---|---|
+| Banco D1 (tabelas criadas) | `hanne-essencial-db` | `cc1e2021-1f8e-4acc-81de-5434c52baac9` |
+| KV dos anexos do WhatsApp | `hanne-media` | `28c1e889cf1c42e1ab0159e211736d68` |
+
+O arquivo `.github/workflows/deploy.yml` publica o site a cada push na `main` (ou em **Actions → Publicar na Cloudflare → Run workflow**). Ele roda os testes, faz o build, confere as migrações, publica o Worker `hanne-essencial` e grava os segredos. Tudo no plano gratuito do GitHub e da Cloudflare.
+
+Falta só configurar uma vez:
+
+1. **Ativar os Workers na Cloudflare:** abra o painel → **Workers e Pages**. Se for o primeiro acesso, escolha o subdomínio `workers.dev` (é gratuito). O site vai ficar em `https://hanne-essencial.SEU-SUBDOMINIO.workers.dev`.
+2. **Criar o token:** painel → ícone do perfil → **Meu perfil → Tokens de API → Criar token** → modelo **Editar Cloudflare Workers** → em Permissões, **adicione** `Conta · D1 · Editar` → Continuar → Criar. Copie o token (ele aparece uma vez só).
+3. **Guardar no GitHub:** no repositório, **Settings → Secrets and variables → Actions → New repository secret**:
+   - `CLOUDFLARE_API_TOKEN`: o token do passo 2.
+   - `SETUP_TOKEN`: um código seu, com 16 caracteres ou mais (ex.: uma frase sem espaços). É ele que cria a conta da titular no primeiro acesso e redefine a senha sem e-mail. Guarde num lugar seguro.
+   - `CLOUDFLARE_ACCOUNT_ID` (só se o token tiver acesso a mais de uma conta): está no painel, em **Workers e Pages**, à direita.
+4. **Publicar:** **Actions → Publicar na Cloudflare → Run workflow**. Em 2 a 4 minutos o endereço aparece no log do passo “Publicar”.
+5. **Primeiro acesso:** abra o endereço, toque em primeiro acesso, informe seu e-mail, o `SETUP_TOKEN` e crie a senha (mínimo 12 caracteres).
+
+A chave de cifragem do WhatsApp (`WHATSAPP_ENCRYPTION_KEY`) é gerada automaticamente na primeira publicação e nunca é trocada depois. A IA (Workers AI) já vem ligada, dentro da cota gratuita diária.
+
+O caminho manual abaixo (pelo seu computador) continua valendo.
+
 ## 1. Pré-requisitos
 
 - Node.js 22.13 ou mais recente.
@@ -22,7 +48,7 @@ npx wrangler login
 npx wrangler d1 create hanne-essencial-db
 ```
 
-Guarde o `database_id` exibido (formato `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
+Guarde o `database_id` exibido (formato `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`). O banco `hanne-essencial-db` já existe: use o ID `cc1e2021-1f8e-4acc-81de-5434c52baac9` e pule este comando.
 
 ## 3. Publicar
 

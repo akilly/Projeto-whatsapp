@@ -1,0 +1,60 @@
+# Publica o Hanne Essencial na Cloudflare (plano gratuito) a cada push na main ou pelo botão "Run workflow".
+# Segredos do repositório (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN  (obrigatório) token da Cloudflare com Workers Scripts, D1 e Workers KV (Edit)
+#   SETUP_TOKEN           (obrigatório no primeiro acesso) código com 16+ caracteres para criar a conta da titular
+#   CLOUDFLARE_ACCOUNT_ID (opcional) só se o token tiver acesso a mais de uma conta
+name: Publicar na Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  # IDs dos recursos já criados na conta (não são segredos).
+  CLOUDFLARE_D1_DATABASE_ID: cc1e2021-1f8e-4acc-81de-5434c52baac9
+  CLOUDFLARE_KV_MEDIA_ID: 28c1e889cf1c42e1ab0159e211736d68
+  WORKER_NAME: hanne-essencial
+  D1_DATABASE_NAME: hanne-essencial-db
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar dependências
+        run: npx --yes pnpm@11.25.0 install --frozen-lockfile
+      - name: Testes
+        run: npm test
+      - name: Conferir o token
+        id: token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::warning::Segredo CLOUDFLARE_API_TOKEN ainda não configurado. Publicação ignorada; veja DEPLOY.md."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publicar (build, migrações e deploy)
+        if: steps.token.outputs.ok == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/deploy-cloudflare.mjs
+      - name: Segredos do servidor
+        if: steps.token.outputs.ok == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SETUP_TOKEN: ${{ secrets.SETUP_TOKEN }}
+        run: node scripts/ensure-secrets.mjs

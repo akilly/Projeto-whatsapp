@@ -1,0 +1,15 @@
+# Sobe o conector do WhatsApp com reinício automático.
+# 1. Copie .env.example para .env e preencha BRIDGE_KEY e SITE_ORIGIN.
+# 2. docker compose up -d        (ver o andamento: docker compose logs -f)
+services:
+  conector:
+    build: .
+    image: hanne-conector-whatsapp
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - hanne-whatsapp-data:/data
+volumes:
+  hanne-whatsapp-data:

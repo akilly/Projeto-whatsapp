@@ -30,6 +30,9 @@ test('modelos usam o primeiro nome e todos os dados informados', () => {
     assert.match(charge, /R\$ 120,00, referente a Corte \(20\/10\/2026\), com vencimento em 25\/10\/2026/);
     const quote = waMessages.quote({ name: 'Ana', service: 'Mechas', questions: '  Já fez química?  ' });
     assert.ok(quote.endsWith(':\n\nJá fez química?'));
+    assert.match(quote, /orçamento de Mechas,/);
+    assert.match(waMessages.quote({ name: 'Ana', service: 'A definir', questions: 'x' }), /seu orçamento, preciso/);
+    assert.match(waMessages.quote({ name: 'Ana', service: '', questions: 'x' }), /seu orçamento, preciso/);
     for (const text of [confirm, charge, quote, waMessages.reminder({ name: 'Ana', service: 'Corte', when: 'amanhã', time: '10:00' }), waMessages.followup({ name: 'Ana' })])
         assert.doesNotMatch(text, /undefined|null/);
 });

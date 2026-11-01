@@ -32,7 +32,7 @@ export const waMessages = {
     followup: ({ name }) =>
         `Oi, ${firstName(name)}! Tudo bem? Estou passando para saber como ficou o resultado do nosso último atendimento e conversar sobre os próximos cuidados.`,
     quote: ({ name, service, questions }) =>
-        `Oi, ${firstName(name)}! Para avaliar o seu orçamento de ${service}, preciso de algumas informações:\n\n${String(questions || '').trim()}`,
+        `Oi, ${firstName(name)}! Para avaliar o seu orçamento${service && !/^a definir$/i.test(String(service).trim()) ? ' de ' + String(service).trim() : ''}, preciso de algumas informações:\n\n${String(questions || '').trim()}`,
     free: ({ name }) => `Oi, ${firstName(name)}! `,
 };
 

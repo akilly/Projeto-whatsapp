@@ -651,7 +651,7 @@ function waComposer(contact, text, { title = 'Enviar pelo WhatsApp', context = '
     waClose();
     const d = document.createElement('dialog');
     d.id = 'wa-dialog'; d.className = 'wa-dialog'; d.setAttribute('aria-labelledby', 'wa-title');
-    d.innerHTML = `<div class="dialog-head"><h2 id="wa-title">${esc(title)}</h2>${iconBtn('close', 'wa-close', 'Fechar janela')}</div><div class="dialog-body"><div class="row wa-recipient">${avatar(contact)}<div><h3>${esc(contact.name)}</h3>${context ? `<p class="muted small">${esc(context)}</p>` : ''}</div></div><div class="form-grid"><label class="field full"><span>Telefone do WhatsApp</span><input name="waPhone" type="tel" inputmode="tel" maxlength="30" autocomplete="off" value="${esc(contact.phone || '')}" data-input="wa-compose"><small class="wa-phone-hint" aria-live="polite"></small></label><label class="field full"><span>Mensagem (edite antes de abrir o WhatsApp)</span><textarea name="waText" maxlength="4000" rows="8" data-input="wa-compose">${esc(text)}</textarea></label></div><p class="notice">O WhatsApp abre com este texto pronto. Confira e toque em enviar por lá.</p></div><div class="dialog-footer">${btn('Copiar texto', 'wa-copy', 'copy', 'secondary')}<a class="btn primary" data-action="wa-open" href="#" target="_blank" rel="noopener noreferrer">${icon('chat')}Abrir no WhatsApp</a></div>`;
+    d.innerHTML = `<div class="dialog-head"><h2 id="wa-title">${esc(title)}</h2>${iconBtn('close', 'wa-close', 'Fechar janela')}</div><div class="dialog-body"><div class="row wa-recipient">${avatar(contact)}<div><h3>${esc(contact.name)}</h3>${context ? `<p class="muted small">${esc(context)}</p>` : ''}</div></div><div class="form-grid"><label class="field full"><span>Telefone do WhatsApp</span><input name="waPhone" type="tel" inputmode="tel" maxlength="30" autocomplete="off" value="${esc(contact.phone || '')}" data-input="wa-compose"><small class="wa-phone-hint" aria-live="polite"></small></label><label class="field full"><span>Mensagem (edite antes de enviar)</span><textarea name="waText" maxlength="4000" rows="8" data-input="wa-compose">${esc(text)}</textarea></label></div><p class="notice wa-send-note">${canSendHere() ? 'Enviar pelo WhatsApp manda pelo número conectado do ateliê; a mensagem fica na conversa em Atendimentos e a resposta da cliente chega lá.' : 'O WhatsApp abre com este texto pronto. Confira e toque em enviar por lá.'}</p><p class="small wa-send-error" role="alert"></p></div><div class="dialog-footer">${btn('Copiar texto', 'wa-copy', 'copy', 'text')}<a class="btn ${canSendHere() ? 'secondary' : 'primary'}" data-action="wa-open" href="#" target="_blank" rel="noopener noreferrer">${icon('chat')}Abrir no WhatsApp</a>${canSendHere() ? btn('Enviar pelo WhatsApp', 'wa-send-here', 'chat', 'primary') : ''}</div>`;
     document.body.append(d);
     d.addEventListener('cancel', e => { e.preventDefault(); waClose(); });
     d.showModal();
@@ -666,8 +666,30 @@ function waUpdate() {
     link.href = url || '#';
     if (url) link.removeAttribute('aria-disabled'); else link.setAttribute('aria-disabled', 'true');
     const number = waPhone(phone), hint = d.querySelector('.wa-phone-hint');
-    hint.textContent = number ? `Abrirá a conversa com +${number}.` : 'Confira o telefone, com DDD, para abrir o WhatsApp.';
+    hint.textContent = number ? `Conversa com +${number}.` : 'Confira o telefone, com DDD.';
     hint.classList.toggle('error', !number);
+}
+/** Envio pelo próprio site (conector do ateliê) só nos dados reais; na demonstração fica o link wa.me. */
+const canSendHere = () => WHATSAPP_API && dataset === 'real';
+/** Envia a mensagem pela conversa do número (cria a conversa se ainda não existir). Repetir reaproveita a mesma tentativa. */
+async function waSendHere(button) {
+    const d = document.getElementById('wa-dialog'), error = d.querySelector('.wa-send-error');
+    const phone = d.querySelector('[name="waPhone"]').value, text = d.querySelector('[name="waText"]').value.trim(), number = waPhone(phone);
+    error.textContent = '';
+    if (!number) { error.textContent = 'Confira o telefone, com DDD.'; d.querySelector('[name="waPhone"]').focus(); return; }
+    if (!text) { error.textContent = 'Escreva a mensagem.'; d.querySelector('[name="waText"]').focus(); return; }
+    const attempt = number + '\n' + text;
+    if (d.dataset.attempt !== attempt) { d.dataset.attempt = attempt; d.dataset.requestId = crypto.randomUUID(); }
+    const body = new FormData(); body.set('requestId', d.dataset.requestId); body.set('to', '+' + number); body.set('name', d.querySelector('.wa-recipient h3')?.textContent || ''); body.set('text', text);
+    button.disabled = true; button.textContent = 'Enviando…';
+    try {
+        const response = await fetch('/api/whatsapp/send', { method: 'POST', body, headers: { 'X-Atelier-Dataset': 'real' } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw Error(data.error || 'Não foi possível enviar. Tente de novo.');
+        if (data.message?.status === 'failed') throw Error(data.message.error || 'O WhatsApp recusou a mensagem.');
+        waClose(); toast('Mensagem enviada pelo WhatsApp do ateliê. Ela aparece em Atendimentos → WhatsApp.');
+    }
+    catch (e) { error.textContent = e.message; button.disabled = false; button.innerHTML = icon('chat') + 'Enviar pelo WhatsApp'; }
 }
 function waClose() { const d = document.getElementById('wa-dialog'); d?.close(); d?.remove(); }
 document.addEventListener('input', e => { if (e.target.dataset?.input === 'wa-compose') waUpdate(); });
@@ -676,6 +698,7 @@ document.addEventListener('click', async e => {
     if (!t || !document.getElementById('wa-dialog')?.contains(t)) return;
     const a = t.dataset.action;
     if (a === 'wa-close') waClose();
+    if (a === 'wa-send-here') await waSendHere(t);
     if (a === 'wa-copy') toast(await copyText(document.querySelector('#wa-dialog [name="waText"]').value) ? 'Texto copiado.' : 'Não foi possível copiar. Selecione o texto manualmente.');
     if (a === 'wa-open') { if (t.getAttribute('aria-disabled') === 'true') { e.preventDefault(); toast('Confira o telefone e a mensagem.'); } else setTimeout(waClose, 300); }
 });
@@ -804,7 +827,7 @@ document.addEventListener('click', async e => {
         const v = state.conversations.find(x => x.id === id), select = target.closest('form')?.elements.category, reason = document.getElementById('ai-classify-reason');
         if (v && select) { target.disabled = true; reason.textContent = 'Consultando a IA…'; aiRun('classify', aiNoteMessages(v), aiContext(v.contact)).then(r => { select.value = r.category; reason.textContent = `Sugestão: ${r.category} · prioridade ${r.priority}${r.reason ? ' — ' + r.reason.replace(/[.!]+$/, '') : ''}. Confira e confirme.`; }).catch(err => { reason.textContent = err.message; }).finally(() => { target.disabled = false; }); }
     }
-    if (a === 'wa-quote') { const f = target.closest('dialog')?.querySelector('form'), q = f?.elements.question.value || '', contact = makeContact(f?.elements.contactName.value, f?.elements.contactPhone.value), serviceName = f?.elements.serviceId.selectedOptions[0]?.textContent || 'seu atendimento'; if (!q.trim()) toast('Escreva as perguntas antes de enviar.'); else waComposer(contact, waMessages.quote({ name: contact?.name, service: serviceName, questions: q }), { title: 'Orçamento pelo WhatsApp', context: 'Perguntas do orçamento' }); }
+    if (a === 'wa-quote') { const f = target.closest('dialog')?.querySelector('form'), q = f?.elements.question.value || '', contact = makeContact(f?.elements.contactName.value, f?.elements.contactPhone.value), serviceName = f?.elements.serviceId.value ? f.elements.serviceId.selectedOptions[0]?.textContent : ''; if (!q.trim()) toast('Escreva as perguntas antes de enviar.'); else waComposer(contact, waMessages.quote({ name: contact?.name, service: serviceName, questions: q }), { title: 'Orçamento pelo WhatsApp', context: 'Perguntas do orçamento' }); }
     if (a === 'wa-draft') { const v = state.conversations.find(v => v.id === id), text = target.closest('dialog')?.querySelector('form')?.elements.text.value || ''; if (v) waComposer(v.contact, text, { title: 'Rascunho pelo WhatsApp', context: 'Rascunho da conversa' }); }
     if (a === 'new-service') serviceForm();
     if (a === 'edit-service') serviceForm(id);

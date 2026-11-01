@@ -77,7 +77,7 @@ Com o **Workers AI** da Cloudflare (gratuito até 10.000 *neurons* por dia), o s
 ## WhatsApp
 
 1. **Link wa.me** (sempre disponível): abre o WhatsApp com a mensagem pronta e editável.
-2. **Conector Baileys** (opcional, gratuito): roda no computador do ateliê e conversa com o site. Instalação no Windows: [docs/WHATSAPP_NO_COMPUTADOR.md](docs/WHATSAPP_NO_COMPUTADOR.md). Com Docker (qualquer máquina sempre ligada): [docs/WHATSAPP_NO_DOCKER.md](docs/WHATSAPP_NO_DOCKER.md). Detalhes técnicos: [docs/INTEGRACAO_BAILEYS.md](docs/INTEGRACAO_BAILEYS.md).
+2. **Conector Baileys** (opcional, gratuito): roda no computador do ateliê e conversa com o site. Instalação no Windows: [docs/WHATSAPP_NO_COMPUTADOR.md](docs/WHATSAPP_NO_COMPUTADOR.md). Com Docker (qualquer máquina sempre ligada): [docs/WHATSAPP_NO_DOCKER.md](docs/WHATSAPP_NO_DOCKER.md). Na nuvem gratuita da Oracle: [docs/WHATSAPP_NA_ORACLE.md](docs/WHATSAPP_NA_ORACLE.md). Detalhes técnicos: [docs/INTEGRACAO_BAILEYS.md](docs/INTEGRACAO_BAILEYS.md).
 
 O servidor também mantém o adaptador da **API oficial da Meta** (sem botão na tela atual): [docs/INTEGRACAO_WHATSAPP.md](docs/INTEGRACAO_WHATSAPP.md).
 

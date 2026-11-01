@@ -16,13 +16,27 @@ const conversa = [{ who: 'cliente', text: 'Oi! Depois da coloração de ontem es
 
 test('classificação: categoria e prioridade sempre válidas, segurança é sempre alta', async () => {
   let r = await classify({ AI: fakeAI({ category: 'Segurança', priority: 'baixa', reason: 'Relata ardência.' }) }, conversa);
-  assert.deepEqual(r, { category: 'Segurança', priority: 'alta', reason: 'Relata ardência.' });
+  assert.deepEqual(r, { category: 'Segurança', priority: 'alta', reason: 'Relata ardência.', request: '', intent: false });
   r = await classify({ AI: fakeAI('{"category":"Inventada","priority":"urgentíssima","reason":""}') }, conversa);
   assert.equal(r.category, 'Exige esclarecimentos'); assert.ok(['alta', 'normal', 'baixa'].includes(r.priority));
   const ai = fakeAI({ category: 'Orçamento', priority: 'normal', reason: 'Pede preço.' });
   await classify({ AI: ai }, conversa);
   assert.match(ai.calls[0].model, /8b/); assert.deepEqual(ai.calls[0].input.response_format.json_schema.properties.category.enum, AI_CATEGORIES);
   await assert.rejects(() => classify({ AI: ai }, [{ who: 'ateliê', text: 'Oi' }]), /cliente/);
+});
+
+test('classificação lê a solicitação atual e usa as categorias do painel Automação', async () => {
+  const ai = fakeAI({ category: 'Mechas', priority: 'normal', reason: 'Pede mechas.', request: '"Quer orçamento de mechas loiras para sábado."', has_request: true });
+  const r = await classify({ AI: ai }, conversa, { categories: [{ name: 'Mechas', description: 'Luzes e mechas' }, { name: 'Outros' }] });
+  assert.deepEqual(r, { category: 'Mechas', priority: 'normal', reason: 'Pede mechas.', request: 'Quer orçamento de mechas loiras para sábado.', intent: true });
+  assert.deepEqual(ai.calls[0].input.response_format.json_schema.properties.category.enum, ['Mechas', 'Outros']);
+  assert.match(ai.calls[0].input.messages[0].content, /Luzes e mechas/);
+  assert.match(ai.calls[0].input.messages[0].content, /MAIS RECENTES/);
+  // Só cumprimentou: sem solicitação, mesmo se o modelo inventar uma.
+  const hello = await classify({ AI: fakeAI({ category: 'Outros', priority: 'baixa', reason: 'Saudação.', request: 'Cumprimentou', has_request: false }) }, [{ who: 'cliente', text: 'oi' }], { categories: [{ name: 'Outros' }] });
+  assert.equal(hello.intent, false); assert.equal(hello.request, '');
+  // Categoria fora da lista cai na primeira categoria quando não existe "Exige esclarecimentos".
+  assert.equal((await classify({ AI: fakeAI({ category: 'X', priority: 'normal', reason: '', request: 'a', has_request: true }) }, conversa, { categories: [{ name: 'Outros' }, { name: 'Mechas' }] })).category, 'Outros');
 });
 
 test('resumo e resposta: texto limpo, contexto incluído e conteúdo da cliente tratado como dado', async () => {

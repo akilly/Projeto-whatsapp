@@ -10,11 +10,25 @@ Abra o endereço do ateliê, digite o e-mail e a senha. No primeiro acesso, use 
 
 Mostra o que precisa de atenção: atendimentos pendentes (WhatsApp e notas), orçamentos em andamento, tarefas para hoje e atrasadas, e produtos com estoque baixo. O sino no topo junta os alertas prioritários.
 
+## Automação
+
+No menu **Automação**:
+
+- **Boas-vindas automática:** se a cliente só cumprimentar ("oi", "bom dia") e não disser o que precisa, depois do tempo escolhido (padrão: 2 minutos) o sistema pergunta como pode ajudar. Use `{nome}` no texto para o primeiro nome.
+- **Estou ocupada:** com o seletor ligado, depois que a cliente diz o que quer, ela recebe o aviso. Também há o seletor na caixa do WhatsApp.
+- **Assuntos das conversas:** lista (nome, cor e quando usar) que a IA usa para separar as conversas. A ordem da lista é a ordem dos grupos.
+
+Cada mensagem automática sai uma vez por atendimento (um atendimento começa quando a cliente volta a escrever depois de 8 horas sem conversa). Se você já respondeu, pelo sistema ou pelo celular, nada automático é enviado. As mensagens automáticas aparecem na conversa com a etiqueta **Automática**.
+
 ## Atendimentos
 
 São duas abas:
 
-- **WhatsApp:** as conversas reais do número conectado. Para ligar, toque em **Conectar por QR Code** e siga o [guia do conector](WHATSAPP_NO_COMPUTADOR.md). Na conversa você responde (texto, imagem ou áudio), resolve ou reabre, pede à IA um resumo ou uma sugestão de resposta, e usa **Criar orçamento** ou **Criar tarefa**.
+- **WhatsApp:** as conversas reais do número conectado, no jeito do aplicativo. Para ligar, toque em **Conectar por QR Code** e siga o [guia do conector](WHATSAPP_NA_ORACLE.md).
+  - **Lista:** nome salvo no seu celular (ou o nome do perfil do WhatsApp), prévia da última mensagem com ✓✓, não lidas em verde, busca e filtros (Pendentes, Não lidas, Todas, Resolvidas). Com **Separar por assunto**, as conversas ficam agrupadas pelos assuntos do painel Automação, cada um com sua cor.
+  - **Conversa:** no topo, a **solicitação da cliente** em destaque (a IA atualiza a cada mensagem nova). Troque o assunto à mão no seletor do topo (no celular, no menu ⋮). Em **Ferramentas** ficam o resumo, a sugestão de resposta e os orçamentos e tarefas ligados.
+  - **Responder:** Enter envia e Shift+Enter quebra a linha (no celular, use o botão). Há emojis, foto (também colando ou arrastando), arquivo de áudio, áudio gravado na hora (microfone, nos navegadores que gravam em formato aceito pelo WhatsApp), responder citando uma mensagem e copiar o texto.
+  - **Estou ocupada:** seletor no topo da caixa. Ligado, quem disser o que precisa recebe o aviso de que você responde assim que possível.
 - **Notas internas:** para pedidos que chegaram por telefone, Instagram ou pessoalmente. Toque em **Novo atendimento**, informe o nome (o telefone é opcional) e o que a cliente pediu. Depois registre notas internas ou novas mensagens da cliente, classifique, resolva, peça resumo e rascunho à IA e abra o WhatsApp com o texto pronto.
 
 Nada é enviado à cliente sem você tocar em enviar.

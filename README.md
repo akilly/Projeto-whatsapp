@@ -19,6 +19,7 @@ Saíram desta versão: **agenda, cadastro de clientes, financeiro** (cobranças,
 | Tarefas | Prazo, prioridade, área, contato, orçamento relacionado e conversa de origem |
 | Estoque | Produtos em g/ml/unidade, saldo inicial, entradas (com custo opcional), uso, perda, conferência de custo, custo médio e alerta de mínimo |
 | Serviços | Catálogo: nome, descrição, duração, produtos e orientações antes/depois |
+| Automação | Boas-vindas automática, aviso de "estou ocupada" (seletor) e assuntos que a IA usa para separar as conversas |
 | Configurações | Nome do ateliê, conta, salões, tema, exportações (CSV, PDF, JSON), restauração e histórico |
 
 ### Sem cadastro de clientes

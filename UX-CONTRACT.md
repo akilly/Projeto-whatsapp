@@ -44,7 +44,9 @@ Resposta tem tentativa única. Duplo clique/repetição reutiliza o identificado
 
 Rascunhos ficam em memória por conversa, inclusive ao trocar de tela. Recarregar/fechar avisa quando há rascunho. Polling ignora respostas antigas e não substitui o compositor; a caixa informa falhas de consulta e permite Atualizar. Caixa e histórico paginam sem excluir registros. Resolver é uma organização interna, não envia mensagem, não finaliza atendimento e não marca leitura no telefone. Nova mensagem de cliente reabre a pendência; replay não reabre. O contador do menu e o indicador do painel somam WhatsApp e notas internas. A demonstração não acessa o canal real.
 
-Upload é um arquivo por mensagem, com picker nativo acessível, prévia de imagem, nome/tamanho, remoção e validação cliente/servidor. Não há gravação de microfone nem transcodificação automática. Datas/horas de mensagens são instantes exibidos em America/Sao_Paulo. Não colocar contatos ou textos em URLs de navegação.
+Upload é um arquivo por mensagem, com picker nativo acessível, colar/arrastar imagem, prévia, nome/tamanho, remoção e validação cliente/servidor. A gravação pelo microfone só aparece quando o navegador grava direto em OGG Opus ou M4A (AAC); não há transcodificação. Enter envia no computador; no toque, Enter quebra a linha.
+
+Automação (painel próprio, `lib/automation.mjs`): boas-vindas quando a cliente só cumprimenta e aviso de ocupada (seletor) depois que ela diz o que quer, no máximo uma vez cada por atendimento e nunca depois de resposta da profissional no mesmo atendimento. Roda no servidor durante a sincronização do conector. Atualização: a tela espera em `/api/whatsapp/updates` (revisão do canal) e o conector v3 espera no `bridge/sync`, então envio e recebimento levam poucos segundos. Datas/horas de mensagens são instantes exibidos em America/Sao_Paulo. Não colocar contatos ou textos em URLs de navegação.
 
 ## Dataset navigation
 

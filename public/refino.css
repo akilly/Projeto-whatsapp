@@ -1,0 +1,335 @@
+/**
+ * Hanne · revisão de layout (carregada depois de glass.css).
+ * 1. Vidro mais nítido: fundo com luz mais presente, bordas definidas e leitura sólida no conteúdo.
+ * 2. Telas mais limpas: menos rótulos repetidos e ações secundárias discretas.
+ * 3. Conversas no padrão do WhatsApp: cliente à esquerda, você à direita, cores distintas.
+ * 4. Celular: a conversa aberta ocupa a tela inteira, com histórico rolando e resposta fixa embaixo.
+ */
+
+/* ---------- Utilitário ---------- */
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- 1. Vidro ---------- */
+:root {
+  --bg: #efedf5;
+  --glass-bg: linear-gradient(180deg, rgba(255, 255, 255, .78), rgba(255, 255, 255, .6));
+  --glass-edge: rgba(255, 255, 255, .9);
+  --glass-ring: 0 0 0 1px rgba(70, 50, 120, .07);
+  --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 1);
+  --glass-drop: 0 1px 2px rgba(40, 25, 80, .04), 0 12px 32px -18px rgba(60, 35, 120, .22);
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-tint: rgba(255, 255, 255, .55);
+  --glass-tint-edge: rgba(70, 50, 120, .07);
+  --aura-1: rgba(140, 92, 230, .30);
+  --aura-2: rgba(236, 120, 160, .18);
+  --aura-3: rgba(90, 140, 240, .12);
+  --aura-4: rgba(170, 120, 240, .20);
+
+  /* Conversas */
+  --msg-in-bg: #ffffff;
+  --msg-in-ink: var(--ink);
+  --msg-in-edge: rgba(70, 50, 120, .08);
+  --msg-out-bg: #6e43b3;
+  --msg-out-ink: #ffffff;
+  --msg-out-meta: rgba(255, 255, 255, .78);
+  --msg-note-bg: #fff6dc;
+  --msg-note-edge: #f0dfa8;
+  --msg-note-ink: #4d3b12;
+  --chat-bg: #f4f2f8;
+}
+:root[data-theme="dark"] {
+  --bg: #0e0d12;
+  --glass-bg: linear-gradient(180deg, rgba(34, 30, 46, .72), rgba(22, 20, 30, .66));
+  --glass-edge: rgba(255, 255, 255, .08);
+  --glass-ring: 0 0 0 1px rgba(0, 0, 0, .25);
+  --glass-shine: inset 0 1px 0 rgba(255, 255, 255, .07);
+  --glass-drop: 0 18px 40px -24px rgba(0, 0, 0, .85);
+  --glass-tint: rgba(255, 255, 255, .04);
+  --glass-tint-edge: rgba(255, 255, 255, .07);
+
+  --msg-in-bg: #24202e;
+  --msg-in-ink: var(--ink);
+  --msg-in-edge: rgba(255, 255, 255, .06);
+  --msg-out-bg: #6a45b8;
+  --msg-out-ink: #ffffff;
+  --msg-out-meta: rgba(255, 255, 255, .72);
+  --msg-note-bg: #3a3120;
+  --msg-note-edge: #574a2c;
+  --msg-note-ink: #f3e6c4;
+  --chat-bg: #121017;
+}
+
+html .sidebar, html .topbar, html .mobile-bottom-nav, html .stat, html .attention-card, html .chart-card, html .dataset-banner,
+html .card, html .more-metrics, html .stat-link, html .login {
+  background: var(--glass-bg);
+  border-color: var(--glass-edge);
+  box-shadow: var(--glass-shine), var(--glass-ring), var(--glass-drop);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+html .sidebar { box-shadow: var(--glass-shine), 1px 0 0 rgba(70, 50, 120, .06); }
+html .topbar { box-shadow: 0 1px 0 rgba(70, 50, 120, .06); }
+:root[data-theme="dark"] .sidebar { box-shadow: 1px 0 0 rgba(255, 255, 255, .05); }
+:root[data-theme="dark"] .topbar { box-shadow: 0 1px 0 rgba(255, 255, 255, .05); }
+html .mobile-bottom-nav { border-width: 1px 0 0; box-shadow: 0 -1px 0 rgba(70, 50, 120, .06), 0 -10px 30px -20px rgba(60, 35, 120, .25); }
+/* Cartões dentro de cartões não ganham uma segunda sombra. */
+html .card .card { box-shadow: none; }
+/* Destaques clicáveis respondem ao toque/mouse com leve elevação. */
+html .attention-card, html .stat-link { transition: transform .18s ease, box-shadow .18s ease; }
+@media (hover: hover) {
+  html .attention-card:hover, html .stat-link:hover { transform: translateY(-1px); box-shadow: var(--glass-shine), var(--glass-ring), 0 18px 36px -20px rgba(60, 35, 120, .35); }
+}
+
+/* ---------- 2. Telas mais limpas ---------- */
+/* O rótulo acima do título repete o menu e o caminho do topo. */
+html .page-heading .page-kicker { display: none; }
+html .page-heading { align-items: flex-end; gap: 16px; }
+html .page-heading > .row { gap: 8px; align-items: center; }
+/* Ação de exclusão em lote fica disponível, mas sem disputar atenção. */
+html .page-heading [data-action="v12-delete-list"] { color: var(--muted); font-weight: 500; font-size: 12px; padding: 8px 10px; min-height: 0; }
+html .page-heading [data-action="v12-delete-list"]:hover { color: var(--red); background: var(--red-soft); }
+/* "Como usar esta tela" vira um link discreto; abre como um cartão. */
+html .page-guide { border: 0; background: transparent; box-shadow: none; margin: -10px 0 18px; -webkit-backdrop-filter: none; backdrop-filter: none; }
+html .page-guide summary { display: inline-flex; padding: 4px 0; font-size: 12px; font-weight: 550; color: var(--muted); gap: 6px; }
+html .page-guide summary:hover { color: var(--accent); }
+html .page-guide summary .icon { width: 15px; height: 15px; }
+html .page-guide summary .icon:last-child { margin-left: 2px; width: 13px; }
+html .page-guide[open] { background: var(--glass-tint); border: 1px solid var(--glass-tint-edge); border-radius: 14px; padding: 6px 14px 2px; }
+html .page-guide[open] > div { padding: 0 2px 14px; }
+/* Abas com muitas opções rolam de lado sem cortar o texto do meio. */
+html .segmented { max-width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+html .segmented::-webkit-scrollbar { display: none; }
+html .segmented button { flex-shrink: 0; white-space: nowrap; }
+/* Seletor WhatsApp / Notas internas como abas, não como dois botões grandes. */
+html .wa-view-switch { display: inline-flex; gap: 3px; padding: 4px; margin: 0 0 18px; border-radius: 12px; background: var(--glass-tint); border: 1px solid var(--glass-tint-edge); }
+html .wa-view-switch .btn { min-height: 34px; padding: 7px 16px; font-size: 13px; border-radius: 9px; border: 0; box-shadow: none; background: transparent; color: var(--muted); }
+html .wa-view-switch .btn[aria-pressed="true"] { background: var(--surface-solid); color: var(--accent-dark); font-weight: 650; box-shadow: 0 1px 3px rgba(30, 20, 60, .12); }
+:root[data-theme="dark"] .wa-view-switch .btn[aria-pressed="true"] { background: rgba(255, 255, 255, .09); color: var(--ink); }
+html .wa-view-switch .btn:disabled { opacity: .55; }
+html .gentle-note { opacity: .7; }
+
+/* ---------- 3. Conversas · WhatsApp ---------- */
+html .wa-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+html .wa-status { margin: 0; min-height: 0; gap: 8px 10px; color: var(--muted); font-size: 12px; }
+html .wa-status .btn { padding: 4px 6px; min-height: 0; font-size: 12px; }
+html .wa-setup { margin: 0 0 16px; }
+html .wa-inbox {
+  grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+  height: clamp(560px, calc(100dvh - 250px), 860px);
+  min-height: 0;
+}
+html .wa-list { max-height: none; height: 100%; overflow: auto; border-right: 1px solid var(--line); }
+html .wa-list-head { padding: 14px 16px; background: transparent; position: sticky; top: 0; z-index: 1; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+html .wa-list-head > div { margin-top: 8px; }
+html .wa-list-head .btn { padding: 5px 10px; min-height: 0; font-size: 12px; border-radius: 999px; }
+html .wa-contact { padding: 12px 16px; gap: 12px; align-items: center; }
+html .wa-contact strong { font-size: 14px; }
+html .wa-contact small { margin-top: 2px; }
+html .wa-contact .wa-ai-tag { margin: 4px 0 0; }
+html .wa-avatar { border-radius: 50%; background: var(--accent-soft); }
+html .wa-thread { height: 100%; min-height: 0; overflow: hidden; }
+html .wa-thread-head { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 12px 18px; }
+html .wa-thread-top { display: flex; align-items: center; gap: 12px; flex: 1 1 220px; min-width: 0; }
+html .wa-thread-who { min-width: 0; }
+html .wa-thread-who h3 { margin: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html .wa-thread-who p { margin: 1px 0 0; }
+html .wa-thread-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+html .wa-thread-actions .btn { padding: 6px 11px; min-height: 0; font-size: 12px; }
+html .wa-thread-head > #wa-window { flex-basis: 100%; margin: 0; color: var(--accent); }
+html .wa-thread-head > #wa-window:empty { display: none; }
+html .wa-back { display: none; width: 36px; height: 36px; margin-left: -6px; border-radius: 50%; place-items: center; color: var(--ink); flex-shrink: 0; }
+html .wa-back svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+html .wa-back:hover { background: var(--surface-hover); }
+html .wa-ai { padding: 8px 18px; gap: 6px; }
+html .wa-ai-actions .btn { padding: 5px 10px; min-height: 0; font-size: 12px; }
+html .wa-ai > p.small { margin: 0; }
+html .wa-ai-summary { font-size: 13px; }
+
+html .wa-log { flex: 1 1 auto; height: auto; min-height: 0; padding: 18px 22px; background: var(--chat-bg); }
+html #wa-messages { gap: 4px; }
+html .wa-message {
+  position: relative;
+  max-width: min(72%, 560px);
+  padding: 8px 12px 6px;
+  border: 1px solid var(--msg-in-edge);
+  border-radius: 16px 16px 16px 4px;
+  background: var(--msg-in-bg);
+  color: var(--msg-in-ink);
+  box-shadow: 0 1px 1px rgba(30, 20, 60, .05);
+  margin-top: 6px;
+}
+html .wa-message.out {
+  border-color: transparent;
+  border-radius: 16px 16px 4px 16px;
+  background: var(--msg-out-bg);
+  color: var(--msg-out-ink);
+}
+/* Mensagens seguidas do mesmo lado ficam agrupadas, como no WhatsApp. */
+html .wa-message.in + .wa-message.in, html .wa-message.out + .wa-message.out { margin-top: 0; }
+html .wa-message p { margin: 0; font-size: 14px; line-height: 1.5; }
+html .wa-message img { display: block; margin: 2px 0 4px; }
+html .wa-meta { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 3px; font-size: 11px; color: var(--muted); line-height: 1.4; }
+html .wa-message.out .wa-meta { color: var(--msg-out-meta); }
+html .wa-meta time { margin: 0; font-size: 11px; color: inherit; }
+html .wa-msg-status::before { content: '·'; margin-right: 6px; }
+html .wa-msg-status.failed, html .wa-msg-status.uncertain { color: var(--red); font-weight: 600; }
+html .wa-message.out .wa-msg-status.failed, html .wa-message.out .wa-msg-status.uncertain { color: #ffd2db; }
+html .wa-message.out .wa-message-error { color: #ffe1e7; }
+/* Excluir aparece ao passar o mouse ou ao tocar no balão (no celular). */
+html .wa-msg-delete { margin-right: auto; padding: 0; font-size: 11px; color: inherit; text-decoration: underline; text-underline-offset: 2px; opacity: 0; pointer-events: none; transition: opacity .15s; }
+html .wa-message:hover .wa-msg-delete, html .wa-message:focus-within .wa-msg-delete, html .wa-msg-delete:focus-visible { opacity: .85; pointer-events: auto; }
+html .wa-message:focus { outline: none; }
+html .wa-message:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+html .wa-composer { padding: 10px 14px 12px; gap: 8px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; }
+html .wa-composer .wa-compose-field { flex: 1 1 100%; margin: 0; }
+html .wa-composer textarea { min-height: 46px; max-height: 160px; padding: 11px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; }
+html .wa-composer .wa-attachments { flex: 1 1 auto; gap: 6px; min-width: 0; }
+html .wa-composer .wa-attachments .btn { padding: 5px 10px; min-height: 0; font-size: 12px; }
+html .wa-composer #wa-file-preview, html .wa-composer #wa-compose-error { flex: 1 1 100%; }
+html .wa-composer #wa-file-preview:empty, html .wa-composer #wa-compose-error:empty { display: none; }
+/* Botão de enviar ao lado dos anexos; o texto de situação do envio fica numa linha discreta abaixo. */
+html .wa-composer > .row:last-child { display: contents; }
+html .wa-composer #wa-send-state { order: 9; flex: 1 1 100%; font-size: 11px; }
+html .wa-composer #wa-send-state:empty { display: none; }
+html .wa-composer .wa-send-button { margin-left: auto; }
+html .wa-send-button { min-width: 0; padding: 9px 18px; }
+html .wa-footnote { font-size: 11px; line-height: 1.6; margin-top: 10px; opacity: .8; }
+
+/* ---------- 3b. Conversas · notas internas ---------- */
+html .inbox { min-height: 0; }
+html .thread-head { gap: 10px; flex-wrap: wrap; padding: 12px 18px; }
+html .thread-head .thread-who { min-width: 0; flex: 1 1 160px; }
+html .thread-head h3 { font-size: 15px; margin: 0; }
+html .thread-head small { font-size: 12px; }
+html .thread-tools { gap: 4px; align-items: center; }
+html .thread-body { background: var(--chat-bg); display: flex; flex-direction: column; gap: 6px; padding: 18px 22px; }
+html .thread-date { font-size: 11px; margin-bottom: 8px; }
+html .bubble {
+  max-width: min(72%, 560px);
+  margin: 0;
+  padding: 8px 12px 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--msg-in-bg);
+  border: 1px solid var(--msg-in-edge);
+  color: var(--msg-in-ink);
+  align-self: flex-start;
+  box-shadow: 0 1px 1px rgba(30, 20, 60, .05);
+}
+html .bubble.note {
+  align-self: flex-end;
+  margin-left: auto;
+  border-radius: 16px 16px 4px 16px;
+  background: var(--msg-note-bg);
+  border-color: var(--msg-note-edge);
+  color: var(--msg-note-ink);
+}
+html .bubble p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+html .bubble-author { display: block; font-size: 11px; font-weight: 650; color: var(--accent); margin-bottom: 2px; }
+html .bubble.note .bubble-author { color: inherit; opacity: .75; }
+html .bubble time { font-size: 11px; margin-top: 2px; color: var(--muted); }
+html .bubble.note time { color: inherit; opacity: .7; }
+html .summary-box, html .draft-box { padding: 14px 20px; }
+html .summary-box p, html .draft-box p { font-size: 13px; line-height: 1.55; }
+html .composer { padding: 12px 18px 16px; }
+html .composer textarea { min-height: 64px; }
+
+/* ---------- 4. Celular e tablet estreito ---------- */
+@media (max-width: 760px) {
+  /* Cabeçalho da página mais compacto, com ações em linha. */
+  html .page-heading { margin: 8px 0 16px; }
+  html h1 { font-size: 26px; }
+  html .page-heading p { display: none; }
+  html .page-heading > .row { margin-top: 12px; gap: 8px; flex-wrap: wrap; }
+  html .page-heading .btn { width: auto; flex: 0 1 auto; min-height: 42px; padding: 9px 14px; font-size: 13px; }
+  html .page-heading .btn.primary { flex: 1 1 100%; }
+  html .page-heading [data-action="v12-delete-list"] { margin-left: auto; }
+  html .page-guide { margin: -4px 0 14px; }
+  html .page-guide dl { grid-template-columns: 1fr; gap: 12px; }
+  html .main { padding-top: 14px; }
+
+  /* Painel inicial menos alto. */
+  html .atelier-welcome { padding: 22px 20px; border-radius: 20px; }
+  html .atelier-welcome h1 { font-size: 30px; }
+  html .welcome-actions .btn { min-height: 44px; padding: 10px 14px; white-space: nowrap; }
+
+  /* Lista de conversas: uma coluna ocupando a largura toda. */
+  html .wa-toolbar { align-items: center; flex-direction: row; }
+  html .wa-inbox { grid-template-columns: 1fr; height: auto; min-height: 0; }
+  html .wa-list { height: auto; max-height: none; border: 0; }
+  html .wa-thread { display: none; }
+  html .inbox { grid-template-columns: 1fr; }
+  html .inbox-list { border-right: 0; }
+  html .inbox:not(.mobile-thread) .thread { display: none; }
+  html .inbox.mobile-thread .inbox-list { display: none; }
+  html .inbox-item { padding: 14px 16px; }
+  html .inbox-item p { max-width: 100%; font-size: 12px; white-space: nowrap; }
+  html .inbox-item .name { font-size: 14px; }
+  html .inbox-item .avatar { display: inline-flex; width: 38px; height: 38px; font-size: 11px; }
+
+  /* Conversa aberta em tela cheia, como no WhatsApp. */
+  html .wa-inbox.wa-mobile-thread, html .inbox.mobile-thread {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  html .wa-mobile-thread .wa-list { display: none; }
+  html .wa-mobile-thread .wa-thread { display: flex; flex-direction: column; height: 100dvh; }
+  html .wa-back { display: inline-grid; }
+  html .wa-thread-head { padding: max(10px, env(safe-area-inset-top)) 12px 10px; gap: 8px; background: var(--surface-solid); }
+  html .wa-thread-top { flex-basis: 100%; gap: 10px; }
+  html .wa-thread-top .wa-avatar { width: 36px; height: 36px; }
+  html .wa-thread-actions { justify-content: flex-start; width: 100%; gap: 6px; }
+  html .wa-thread-actions .btn { flex: 0 0 auto; padding: 6px 10px; }
+  html .wa-ai { padding: 6px 12px; background: var(--surface-solid); }
+  html .wa-ai > p.small { display: none; }
+  html .wa-ai-actions { gap: 6px; }
+  html .wa-ai-actions .pill { font-size: 11px; }
+  html .wa-log { padding: 12px 10px; }
+  html .wa-message { max-width: 84%; }
+  html .wa-composer { padding: 8px 10px max(10px, env(safe-area-inset-bottom)); background: var(--surface-solid); }
+  html .wa-composer textarea { min-height: 42px; }
+  html .wa-attach-hint { display: none; }
+  html .wa-send-button { padding: 9px 16px; }
+  html .wa-composer .wa-attachments .btn { padding: 6px 9px; }
+
+  html .inbox.mobile-thread .thread { display: flex; flex-direction: column; height: 100dvh; overflow-y: auto; min-height: 0; background: var(--bg); }
+  html .inbox.mobile-thread .thread-head { position: sticky; top: 0; z-index: 2; background: var(--surface-solid); padding: max(10px, env(safe-area-inset-top)) 12px 10px; }
+  html .thread-head .thread-back { display: inline-flex !important; }
+  html .thread-head .avatar { display: inline-flex; width: 36px; height: 36px; }
+  html .thread-head .thread-who { flex: 1 1 0; }
+  html .thread-head .thread-who h3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html .thread-head .thread-who small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html .thread-tools { margin-left: 0; width: 100%; justify-content: flex-end; }
+  html .thread-tools .btn { font-size: 12px; padding: 6px 12px; }
+  html .conversation-links { padding: 10px 12px !important; }
+  html .conversation-links .btn { font-size: 12px; padding: 6px 10px; }
+  html .thread-body { padding: 14px 10px; flex: 1 0 auto; }
+  html .bubble { max-width: 86%; }
+  html .summary-box, html .draft-box { padding: 12px 14px; }
+  html .composer { padding: 10px 12px max(14px, env(safe-area-inset-bottom)); }
+  html .composer-footer { flex-wrap: wrap; gap: 8px; }
+}
+@media (max-width: 380px) {
+  html .wa-thread-actions .btn, html .thread-tools .btn { font-size: 11px; padding: 6px 9px; }
+}
+
+/* ---------- Ajustes de cortes ---------- */
+/* Subtítulo "Estoque baixo" dentro do cartão do painel ganha o mesmo recuo do restante. */
+html .card > h3.section-gap { padding: 18px 24px 6px; margin: 8px 0 0; font-size: 14px; border-top: 1px solid var(--line); }
+@media (max-width: 760px) {
+  /* Botões secundários do cabeçalho dividem a linha sem o texto vazar. */
+  html .page-heading .btn.secondary { flex: 1 1 140px; min-width: 0; white-space: normal; justify-content: center; line-height: 1.25; }
+  html .page-heading [data-action="v12-delete-list"] { flex: 0 0 auto; }
+  html .card > h3.section-gap { padding: 16px 18px 4px; }
+}

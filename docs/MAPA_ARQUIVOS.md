@@ -44,7 +44,7 @@ O que cada arquivo versionado faz. Cada módulo também tem um comentário de ca
 | `theme.js`, `theme-boot.js` | Tema claro/escuro salvo no navegador |
 | `examples.js` | Dados fictícios da demonstração |
 | `login.js` | Comportamento da página de entrada |
-| `style.css` → `atelier.css` → `theme.css` → `glass.css` | Estilos em camadas |
+| `style.css` → `atelier.css` → `theme.css` → `glass.css` → `refino.css` | Estilos em camadas; `refino.css` é a revisão de layout (vidro, conversas estilo WhatsApp e celular) |
 | `baileys-conector.zip` | Pacote do conector para download (gerado a partir de `services/baileys`) |
 | `favicon.svg` | Ícone do site |
 

@@ -4,7 +4,7 @@ Referência de manutenção da versão essencial do Hanne: atendimentos (WhatsAp
 
 ## Arquitetura e execução
 
-O navegador recebe HTML pela rota app/route.ts, depois carrega public/app.js como módulo ES e as folhas public/style.css, public/atelier.css, public/theme.css e public/glass.css, nesta ordem. A aplicação usa JavaScript e templates HTML com delegação de eventos. Vinext, React, Vite e Cloudflare Workers fornecem o runtime; as telas de negócio atuais usam os módulos em public.
+O navegador recebe HTML pela rota app/route.ts, depois carrega public/app.js como módulo ES e as folhas public/style.css, public/atelier.css, public/theme.css, public/glass.css e public/refino.css, nesta ordem. A aplicação usa JavaScript e templates HTML com delegação de eventos. Vinext, React, Vite e Cloudflare Workers fornecem o runtime; as telas de negócio atuais usam os módulos em public.
 
 A autenticação é feita pelas contas de `salon_users` em lib/salon-auth.mjs. Cada conta é um salão: o `owner_id` da sessão é a chave de todos os registros (`atelier_accounts.user_id`, `wa_connections.user_id`, `ai_usage.owner_id`), então um salão nunca lê os dados de outro. A primeira conta é a titular (`role = admin`, mantém o `owner_id` histórico da base) e convida os demais salões; um salão desativado perde as sessões e não entra mais, mas os dados ficam guardados.
 

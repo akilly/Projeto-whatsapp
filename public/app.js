@@ -54,12 +54,9 @@ function themeControl() {
 
 // Seleciona base real ou exemplo a partir da URL e da preferência local, sem copiar registros entre bases.
 // Os dados reais são o padrão: a demonstração só abre por escolha explícita, evitando registros reais na base fictícia.
+// A demonstração com dados fictícios foi retirada: o sistema usa sempre os dados reais da conta.
 let dataset = 'real';
-try {
-    const mode = new URLSearchParams(location.search).get('dados'), saved = localStorage.getItem('hanne-data-view');
-    dataset = mode === 'reais' ? 'real' : mode === 'exemplo' ? 'example' : saved === 'example' ? 'example' : 'real';
-}
-catch { }
+try { localStorage.removeItem('hanne-data-view'); } catch { }
 /**
  * stateURL — Escolhe a API da base real ou da demonstração sem misturar os registros.
  */
@@ -83,7 +80,7 @@ const whatsapp = createWhatsAppUI({ esc, btn: (...args) => btn(...args), field: 
 });
 whatsapp.install();
 // Painel Automação (boas-vindas, estou ocupada e assuntos), salvo no servidor junto do canal WhatsApp.
-const automationPanel = createAutomationPage({ esc, btn: (...args) => btn(...args), heading: (...args) => heading(...args), toast, isExample: () => dataset === 'example', onSaved: config => whatsapp.automationChanged(config), rerender: () => { if (ui.page === 'automation') { const y = window.scrollY; render(); window.scrollTo?.(0, y); } } });
+const automationPanel = createAutomationPage({ esc, btn: (...args) => btn(...args), heading: (...args) => heading(...args), toast, isExample: () => dataset === 'example', confirm: (message, proceed) => confirmLeaving(message, proceed), onSaved: config => whatsapp.automationChanged(config), rerender: () => { if (ui.page === 'automation') { const y = window.scrollY; render(); window.scrollTo?.(0, y); } } });
 automationPanel.install();
 let currentDetailTarget = null, leaveConfirmation = null, modalOpener = null, modalReturnHref = null;
 
@@ -91,7 +88,7 @@ let currentDetailTarget = null, leaveConfirmation = null, modalOpener = null, mo
 function pageGuide() {
     const guides = {
         dashboard: ['Comece pelos atendimentos pendentes e siga para orçamentos e tarefas.', [['Atendimentos', 'Conversas do WhatsApp e notas internas que ainda não foram resolvidas.'], ['Orçamentos e tarefas', 'Crie direto de uma conversa: o contato e a origem já vêm preenchidos.'], ['Estoque', 'Produtos com saldo igual ou abaixo do mínimo aparecem aqui para reposição.']]],
-        conversations: ['Organize os contatos que precisam de resposta e registre o próximo passo.', [['WhatsApp', 'Recebe e envia após instalar o conector Baileys e ler o QR Code. O conector precisa continuar ligado.'], ['Notas internas', 'Registre pedidos que chegaram por outros canais e acompanhe com notas. Nada é enviado à cliente.'], ['Criar orçamento ou tarefa', 'Os botões na conversa levam o nome, o telefone e o vínculo com a conversa.']]],
+        conversations: ['Organize os contatos que precisam de resposta e registre o próximo passo.', [['WhatsApp', 'Recebe e envia após instalar o conector Baileys e ler o QR Code. O conector precisa continuar ligado.'], ['Nota interna', 'Dentro da conversa, troque Mensagem por Nota interna para deixar um registro do que está fazendo. A cliente não recebe.'], ['Nova conversa', 'Envia a primeira mensagem para um número que ainda não está na lista.'], ['Criar orçamento ou tarefa', 'Os botões na conversa levam o nome, o telefone e o vínculo com a conversa.']]],
         quotes: ['Registre o pedido e acompanhe a avaliação antes de combinar o atendimento.', [['Contato', 'Nome e telefone de quem pediu. Se veio de uma conversa, o botão “Abrir conversa” volta para ela.'], ['Avaliação', 'Atualize a situação. Para marcar como avaliado, defina o valor.'], ['Perguntas', 'Escreva o que falta saber e envie pelo WhatsApp com a mensagem pronta.']]],
         tasks: ['Use para lembrar atividades que precisam de acompanhamento.', [['Pendente', 'Atividade ainda não concluída. Prazo passado aparece como atraso.'], ['Concluir', 'Marque o círculo quando terminar; a atividade fica no filtro Concluídas.'], ['Vínculos', 'A tarefa pode guardar o contato, a conversa de origem e o orçamento relacionado.']]],
         inventory: ['Cadastre o saldo real dos produtos e registre entradas e saídas quando acontecerem.', [['Saldo inicial', 'Quantidade que já existe, inclusive embalagens abertas, em g, ml ou unidades.'], ['Entrada e uso', 'Entrada soma ao estoque (com custo, se souber). Uso e perda reduzem o saldo. Tudo é lançado à mão.'], ['Custo a conferir', 'Significa que falta informação de custo; não é tratado como custo zero.']]],
@@ -129,7 +126,7 @@ const empty = (title, text = '', ic = 'leaf') => `<div class="empty">${icon(ic)}
 /**
  * pendingConvs — Conta como pendente toda conversa que ainda não está resolvida, inclusive as que aguardam retorno.
  */
-const pendingConvs = () => state.conversations.filter(v => v.status !== 'resolved');
+const pendingConvs = () => [];
 /**
  * plural — Concorda o substantivo com a quantidade exibida.
  */
@@ -292,6 +289,10 @@ function missing() { modal('Registro não encontrado', `<div class="dialog-body"
 
 function navigateTo(target, { replace = false, restored = null, discarded = false, scrollY = 0 } = {}) {
     if (!target?.page) return;
+    if (!discarded && ui.page === 'automation' && target.page !== 'automation' && automationPanel.dirty()) {
+        confirmLeaving('Há alterações na Automação que ainda não foram salvas. Deseja sair mesmo assim?', () => { automationPanel.discard(); navigateTo(target, { replace, restored, discarded: true, scrollY }); });
+        return;
+    }
     if (!discarded && document.querySelector?.('#dialog form')?.dataset.dirty === 'true') {
         confirmLeaving('Há alterações nesta ficha que ainda não foram salvas. Deseja descartá-las para abrir outro registro?', () => navigateTo(target, { replace, restored, discarded: true, scrollY }));
         return;
@@ -337,7 +338,6 @@ function render() {
             <div class="sidebar-bottom">
                 <div class="focus-box"><button type="button" class="focus-toggle" data-action="focus" role="switch" aria-checked="${state.focus}"><span>${icon('moon')} Modo de foco</span><span class="switch ${state.focus ? 'on' : ''}"></span></button><p>As prioridades continuam em destaque.</p></div>
                 <nav class="nav" aria-label="Suporte"><button type="button" data-action="nav" data-page="settings" class="${ui.page === 'settings' ? 'active' : ''}" title="Configurações">${icon('settings')}<span>Configurações</span></button><button type="button" data-action="help" title="Ajuda e primeiros passos">${icon('help')}<span>Ajuda e primeiros passos</span></button></nav>
-                <button type="button" class="demo-label" data-action="v3-dataset" data-dataset="${dataset === 'example' ? 'real' : 'example'}" title="${dataset === 'example' ? 'Voltar aos dados reais' : 'Abrir a demonstração com dados fictícios'}">${icon(dataset === 'example' ? 'spark' : 'shield')}<span>${dataset === 'example' ? 'Demonstração · voltar aos dados reais' : 'Dados reais · ver demonstração'}</span></button>
             </div>
         </aside>
         <div class="workspace">
@@ -387,9 +387,7 @@ function dashboard() {
 /* ---------- Atendimentos ---------- */
 /** Duas origens explícitas: mensagens reais do canal e anotações do aplicativo. */
 function conversationsPage() {
-    const real = dataset === 'real';
-    const tabs = `<div class="wa-view-switch" role="group" aria-label="Origem dos atendimentos"><button type="button" class="btn ${ui.inboxView === 'whatsapp' ? 'primary' : 'secondary'}" data-action="inbox-mode" data-mode="whatsapp" aria-pressed="${ui.inboxView === 'whatsapp'}" ${real ? '' : 'disabled'}>WhatsApp ${real ? '' : '· abra os dados reais'}</button><button type="button" class="btn ${ui.inboxView === 'notes' ? 'primary' : 'secondary'}" data-action="inbox-mode" data-mode="notes" aria-pressed="${ui.inboxView === 'notes'}">Notas internas</button></div>`;
-    return ui.inboxView === 'whatsapp' && real ? heading('Atendimentos', 'Conversas reais, com o próximo passo sempre à vista.', btn('Novo atendimento', 'new-conversation', 'plus', 'secondary')) + tabs + '<div id="whatsapp-root"></div>' : heading('Atendimentos', 'Organize as conversas e acompanhe o que ainda precisa de resposta.', btn('Sobre a integração', 'integrations', 'link', 'secondary') + btn('Novo atendimento', 'new-conversation', 'plus', 'primary')) + tabs + manualConversationsPage();
+    return heading('Atendimentos', 'Conversas do WhatsApp, com o próximo passo sempre à vista. Para registrar algo só para você, use Nota interna dentro da conversa.', btn('Nova conversa', 'wa-new-chat', 'plus', 'primary')) + '<div id="whatsapp-root"></div>';
 }
 function manualConversationsPage() {
     const convs = state.conversations.filter(v => ui.convFilter === 'all' || (ui.convFilter === 'resolved' ? v.status === 'resolved' : ui.convFilter === 'open' ? v.status !== 'resolved' : v.category === ui.convFilter));
@@ -532,11 +530,11 @@ function movementEditForm(id) {
 
 /* ---------- Configurações ---------- */
 function settingsPage() {
-    return `${heading('Configurações', 'Aparência, conta, salões e conexões.')}<div class="toolbar">${btn('Exportar dados', 'export-modal', 'download', 'secondary')}${btn('Cópia completa JSON', 'backup', 'download', 'secondary')}${dataset === 'real' && baseIsEmpty() ? btn('Restaurar cópia JSON', 'v14-restore', 'upload', 'secondary') : ''}${btn(dataset === 'example' ? 'Voltar aos dados reais' : 'Ver demonstração', 'v3-dataset', 'spark', 'text', `data-dataset="${dataset === 'example' ? 'real' : 'example'}"`)}</div><section class="card appearance-card"><div><span class="eyebrow">Deixe confortável para você</span><h2>Aparência</h2><p>Escolha entre claro e escuro suave. Sua escolha fica salva neste dispositivo.</p></div>${themeControl()}</section><div class="settings-grid"><section class="card settings-card"><h2>Seu ateliê</h2><form novalidate data-form="settings"><div class="form-grid">${field('Como prefere ser chamada?', 'name', state.settings.name, 'text', 'required maxlength="50"', true)}${field('Prazo de resposta de referência (min)', 'responseMinutes', state.settings.responseMinutes ?? 60, 'number', 'required min="5" max="1440"', true)}<div id="settings-error" role="alert" class="full small" style="color:var(--red)"></div><div class="full"><button type="submit" class="btn primary">Salvar</button></div></div></form></section><section class="card settings-card" id="conta"><h2>Sua conta</h2><div class="setting-row account-row"><div><strong>${esc(accountEmail || 'Sua conta')}</strong><p>${accountRole === 'admin' ? 'Titular. ' : ''}Entrada com e-mail e senha. Trocar a senha encerra o acesso nos outros aparelhos.</p></div><div class="row wrap gap8">${btn('Trocar e-mail', 'change-email', 'edit', 'secondary sm')}${btn('Trocar senha', 'change-password', 'lock', 'secondary sm')}<a class="btn secondary sm" href="/login" data-salon-logout>${icon('arrow')}Sair da conta</a></div></div></section>${salonsSection()}<section class="card settings-card"><h2>Conexões e acesso</h2><div class="setting-row"><div><strong>Dados persistentes</strong><p>Registros vinculados à conta autenticada, com conferência de versão para alterações simultâneas.</p></div>${pill(syncStatus === 'saved' ? 'Sincronizado' : 'Conferir', syncStatus === 'saved' ? 'green' : 'orange')}</div><div class="setting-row"><div><strong>WhatsApp Business</strong><p>O conector Baileys permite vincular por QR Code e receber e enviar textos, imagens e áudios. Requer o computador do ateliê ligado. Confira a conexão em Atendimentos → WhatsApp.</p></div>${btn('Configurar', 'integrations', 'link', 'secondary sm')}</div><div class="setting-row"><div><strong>Inteligência artificial</strong><p>${aiStatus?.enabled ? `Classificação automática das conversas do WhatsApp, resumo e sugestão de resposta (Workers AI). Hoje: ${aiStatus.usage?.classify || 0} classificações, ${(aiStatus.usage?.summary || 0) + (aiStatus.usage?.reply || 0)} resumos/respostas. A IA só sugere; nada é enviado sem você.` : 'Classificação, resumo e sugestão de resposta com o Workers AI (gratuito até a cota diária). No computador, ligue com CONFIGURAR-IA.cmd; na nuvem, já vem ativa.'}</p></div>${pill(aiStatus?.enabled ? 'Ativa' : aiStatus ? 'Desligada' : 'Verificando', aiStatus?.enabled ? 'green' : 'gray')}</div></section><section class="card settings-card full"><h2>Histórico de ações confirmadas</h2><p class="small muted">As alterações salvas ficam registradas no servidor. Última sincronização: ${lastSavedAt ? new Date(lastSavedAt).toLocaleString('pt-BR') : 'nenhuma alteração ainda'}.</p>${state.audit.slice(0, 8).map(a => `<div class="audit-row">${esc(a.action)}<time>${new Date(a.at).toLocaleString('pt-BR')} · ${esc(a.by)}</time></div>`).join('') || empty('O histórico começa com sua primeira alteração.')}${state.audit.length ? btn('Histórico completo', 'audit', 'arrow', 'text') : ''}</section></div>`;
+    return `${heading('Configurações', 'Aparência, conta, salões e conexões.')}<div class="toolbar">${btn('Exportar dados', 'export-modal', 'download', 'secondary')}${btn('Cópia completa JSON', 'backup', 'download', 'secondary')}${dataset === 'real' && baseIsEmpty() ? btn('Restaurar cópia JSON', 'v14-restore', 'upload', 'secondary') : ''}</div><section class="card appearance-card"><div><span class="eyebrow">Deixe confortável para você</span><h2>Aparência</h2><p>Escolha entre claro e escuro suave. Sua escolha fica salva neste dispositivo.</p></div>${themeControl()}</section><div class="settings-grid"><section class="card settings-card"><h2>Seu ateliê</h2><form novalidate data-form="settings"><div class="form-grid">${field('Como prefere ser chamada?', 'name', state.settings.name, 'text', 'required maxlength="50"', true)}${field('Prazo de resposta de referência (min)', 'responseMinutes', state.settings.responseMinutes ?? 60, 'number', 'required min="5" max="1440"', true)}<div id="settings-error" role="alert" class="full small" style="color:var(--red)"></div><div class="full"><button type="submit" class="btn primary">Salvar</button></div></div></form></section><section class="card settings-card" id="conta"><h2>Sua conta</h2><div class="setting-row account-row"><div><strong>${esc(accountEmail || 'Sua conta')}</strong><p>${accountRole === 'admin' ? 'Titular. ' : ''}Entrada com e-mail e senha. Trocar a senha encerra o acesso nos outros aparelhos.</p></div><div class="row wrap gap8">${btn('Trocar e-mail', 'change-email', 'edit', 'secondary sm')}${btn('Trocar senha', 'change-password', 'lock', 'secondary sm')}<a class="btn secondary sm" href="/login" data-salon-logout>${icon('arrow')}Sair da conta</a></div></div></section>${salonsSection()}<section class="card settings-card"><h2>Conexões e acesso</h2><div class="setting-row"><div><strong>Dados persistentes</strong><p>Registros vinculados à conta autenticada, com conferência de versão para alterações simultâneas.</p></div>${pill(syncStatus === 'saved' ? 'Sincronizado' : 'Conferir', syncStatus === 'saved' ? 'green' : 'orange')}</div><div class="setting-row"><div><strong>WhatsApp Business</strong><p>O conector Baileys permite vincular por QR Code e receber e enviar textos, imagens e áudios. Requer o computador do ateliê ligado. Confira a conexão em Atendimentos → WhatsApp.</p></div>${btn('Configurar', 'integrations', 'link', 'secondary sm')}</div><div class="setting-row"><div><strong>Inteligência artificial</strong><p>${aiStatus?.enabled ? `Classificação automática das conversas do WhatsApp, resumo e sugestão de resposta (Workers AI). Hoje: ${aiStatus.usage?.classify || 0} classificações, ${(aiStatus.usage?.summary || 0) + (aiStatus.usage?.reply || 0)} resumos/respostas. A IA só sugere; nada é enviado sem você.` : 'Classificação, resumo e sugestão de resposta com o Workers AI (gratuito até a cota diária). No computador, ligue com CONFIGURAR-IA.cmd; na nuvem, já vem ativa.'}</p></div>${pill(aiStatus?.enabled ? 'Ativa' : aiStatus ? 'Desligada' : 'Verificando', aiStatus?.enabled ? 'green' : 'gray')}</div></section><section class="card settings-card full"><h2>Histórico de ações confirmadas</h2><p class="small muted">As alterações salvas ficam registradas no servidor. Última sincronização: ${lastSavedAt ? new Date(lastSavedAt).toLocaleString('pt-BR') : 'nenhuma alteração ainda'}.</p>${state.audit.slice(0, 8).map(a => `<div class="audit-row">${esc(a.action)}<time>${new Date(a.at).toLocaleString('pt-BR')} · ${esc(a.by)}</time></div>`).join('') || empty('O histórico começa com sua primeira alteração.')}${state.audit.length ? btn('Histórico completo', 'audit', 'arrow', 'text') : ''}</section></div>`;
 }
 function renderPage() { return ({ dashboard, conversations: conversationsPage, quotes: quotesPage, services: servicesPage, inventory: inventoryPage, tasks: tasksPage, automation: () => automationPanel.page(), settings: settingsPage }[ui.page] || dashboard)(); }
 function help() {
-    modal('Uma rotina mais simples', `<div class="dialog-body skeleton-help"><p class="notice">${dataset === 'example' ? 'Você está na base de exemplos, separada dos dados reais.' : 'Os registros pertencem à sua conta. Confira o indicador de sincronização antes de sair.'}</p><div class="help-list section-gap"><div><strong>1. Conecte o WhatsApp</strong>Em Atendimentos → WhatsApp, instale o conector no computador do ateliê e leia o QR Code. Pedidos de outros canais entram como notas internas.</div><div><strong>2. Responda com calma</strong>A IA classifica, resume e sugere respostas. Você revisa e envia.</div><div><strong>3. Transforme em orçamento ou tarefa</strong>Na conversa, toque em Criar orçamento ou Criar tarefa: o contato e o vínculo com a conversa já vêm preenchidos.</div><div><strong>4. Cuide do estoque</strong>Cadastre os produtos com o saldo atual e lance entradas, usos e perdas quando acontecerem.</div><div><strong>5. Mantenha o catálogo</strong>Serviços com descrição, duração e orientações ajudam nas respostas e nos orçamentos.</div></div><p class="notice section-gap">Cada tela traz “Como usar esta tela”, com explicações sobre suas ações.</p></div>`);
+    modal('Uma rotina mais simples', `<div class="dialog-body skeleton-help"><p class="notice">Os registros pertencem à sua conta. Confira o indicador de sincronização antes de sair.</p><div class="help-list section-gap"><div><strong>1. Conecte o WhatsApp</strong>Em Atendimentos → WhatsApp, instale o conector no computador do ateliê e leia o QR Code. Para deixar um registro só para você, use Nota interna dentro da conversa.</div><div><strong>2. Responda com calma</strong>A IA classifica, resume e sugere respostas. Você revisa e envia.</div><div><strong>3. Transforme em orçamento ou tarefa</strong>Na conversa, toque em Criar orçamento ou Criar tarefa: o contato e o vínculo com a conversa já vêm preenchidos.</div><div><strong>4. Cuide do estoque</strong>Cadastre os produtos com o saldo atual e lance entradas, usos e perdas quando acontecerem.</div><div><strong>5. Mantenha o catálogo</strong>Serviços com descrição, duração e orientações ajudam nas respostas e nos orçamentos.</div></div><p class="notice section-gap">Cada tela traz “Como usar esta tela”, com explicações sobre suas ações.</p></div>`);
 }
 
 /* ---------- Janelas e campos ---------- */
@@ -646,17 +644,21 @@ async function copyText(text) {
  * o envio acontece no WhatsApp, e as respostas chegam lá, pelas notificações do celular.
  */
 /** Envio manual pelo link wa.me: a profissional revisa o texto e envia no próprio WhatsApp. */
-function waComposer(contact, text, { title = 'Enviar pelo WhatsApp', context = '' } = {}) {
-    if (!contact?.name) { toast('Informe o contato antes de enviar pelo WhatsApp.'); return; }
+function waComposer(contact, text, { title = 'Enviar pelo WhatsApp', context = '', newChat = false } = {}) {
+    if (!contact?.name && !newChat) { toast('Informe o contato antes de enviar pelo WhatsApp.'); return; }
     waClose();
     const d = document.createElement('dialog');
     d.id = 'wa-dialog'; d.className = 'wa-dialog'; d.setAttribute('aria-labelledby', 'wa-title');
-    d.innerHTML = `<div class="dialog-head"><h2 id="wa-title">${esc(title)}</h2>${iconBtn('close', 'wa-close', 'Fechar janela')}</div><div class="dialog-body"><div class="row wa-recipient">${avatar(contact)}<div><h3>${esc(contact.name)}</h3>${context ? `<p class="muted small">${esc(context)}</p>` : ''}</div></div><div class="form-grid"><label class="field full"><span>Telefone do WhatsApp</span><input name="waPhone" type="tel" inputmode="tel" maxlength="30" autocomplete="off" value="${esc(contact.phone || '')}" data-input="wa-compose"><small class="wa-phone-hint" aria-live="polite"></small></label><label class="field full"><span>Mensagem (edite antes de enviar)</span><textarea name="waText" maxlength="4000" rows="8" data-input="wa-compose">${esc(text)}</textarea></label></div><p class="notice wa-send-note">${canSendHere() ? 'Enviar pelo WhatsApp manda pelo número conectado do ateliê; a mensagem fica na conversa em Atendimentos e a resposta da cliente chega lá.' : 'O WhatsApp abre com este texto pronto. Confira e toque em enviar por lá.'}</p><p class="small wa-send-error" role="alert"></p></div><div class="dialog-footer">${btn('Copiar texto', 'wa-copy', 'copy', 'text')}<a class="btn ${canSendHere() ? 'secondary' : 'primary'}" data-action="wa-open" href="#" target="_blank" rel="noopener noreferrer">${icon('chat')}Abrir no WhatsApp</a>${canSendHere() ? btn('Enviar pelo WhatsApp', 'wa-send-here', 'chat', 'primary') : ''}</div>`;
+    d.innerHTML = `<div class="dialog-head"><h2 id="wa-title">${esc(title)}</h2>${iconBtn('close', 'wa-close', 'Fechar janela')}</div><div class="dialog-body">${newChat ? '' : `<div class="row wa-recipient">${avatar(contact)}<div><h3>${esc(contact.name)}</h3>${context ? `<p class="muted small">${esc(context)}</p>` : ''}</div></div>`}<div class="form-grid">${newChat ? '<label class="field full"><span>Nome do contato (opcional)</span><input name="waName" maxlength="100" autocomplete="off" placeholder="Ex.: Maria Souza"></label>' : ''}<label class="field full"><span>Telefone do WhatsApp</span><input name="waPhone" type="tel" inputmode="tel" maxlength="30" autocomplete="off" value="${esc(contact.phone || '')}" data-input="wa-compose"><small class="wa-phone-hint" aria-live="polite"></small></label><label class="field full"><span>Mensagem (edite antes de enviar)</span><textarea name="waText" maxlength="4000" rows="8" data-input="wa-compose">${esc(text)}</textarea></label></div><p class="notice wa-send-note">${canSendHere() ? 'Enviar pelo WhatsApp manda pelo número conectado do ateliê; a mensagem fica na conversa em Atendimentos e a resposta da cliente chega lá.' : 'O WhatsApp abre com este texto pronto. Confira e toque em enviar por lá.'}</p><p class="small wa-send-error" role="alert"></p></div><div class="dialog-footer">${btn('Copiar texto', 'wa-copy', 'copy', 'text')}<a class="btn ${canSendHere() ? 'secondary' : 'primary'}" data-action="wa-open" href="#" target="_blank" rel="noopener noreferrer">${icon('chat')}Abrir no WhatsApp</a>${canSendHere() ? btn('Enviar pelo WhatsApp', 'wa-send-here', 'chat', 'primary') : ''}</div>`;
+    d.dataset.initial = text || '';
     document.body.append(d);
-    d.addEventListener('cancel', e => { e.preventDefault(); waClose(); });
+    d.addEventListener('cancel', e => { e.preventDefault(); waAskClose(); });
+    // Tocar fora da janela fecha; com texto alterado, pede confirmação antes.
+    d.addEventListener('click', e => { if (e.target !== d) return; const r = d.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) waAskClose(); });
     d.showModal();
     waUpdate();
     const area = d.querySelector('[name="waText"]');
+    if (newChat) { d.querySelector('[name="waPhone"]').focus(); return; }
     area.focus(); area.setSelectionRange(area.value.length, area.value.length);
 }
 function waUpdate() {
@@ -680,7 +682,7 @@ async function waSendHere(button) {
     if (!text) { error.textContent = 'Escreva a mensagem.'; d.querySelector('[name="waText"]').focus(); return; }
     const attempt = number + '\n' + text;
     if (d.dataset.attempt !== attempt) { d.dataset.attempt = attempt; d.dataset.requestId = crypto.randomUUID(); }
-    const body = new FormData(); body.set('requestId', d.dataset.requestId); body.set('to', '+' + number); body.set('name', d.querySelector('.wa-recipient h3')?.textContent || ''); body.set('text', text);
+    const body = new FormData(); body.set('requestId', d.dataset.requestId); body.set('to', '+' + number); body.set('name', d.querySelector('[name="waName"]')?.value.trim() || d.querySelector('.wa-recipient h3')?.textContent || ''); body.set('text', text);
     button.disabled = true; button.textContent = 'Enviando…';
     try {
         const response = await fetch('/api/whatsapp/send', { method: 'POST', body, headers: { 'X-Atelier-Dataset': 'real' } });
@@ -692,12 +694,35 @@ async function waSendHere(button) {
     catch (e) { error.textContent = e.message; button.disabled = false; button.innerHTML = icon('chat') + 'Enviar pelo WhatsApp'; }
 }
 function waClose() { const d = document.getElementById('wa-dialog'); d?.close(); d?.remove(); }
+/** Fecha a janela de envio; se a mensagem foi editada, confirma dentro da própria janela antes de descartar. */
+function waAskClose() {
+    const d = document.getElementById('wa-dialog');
+    if (!d) return;
+    const changed = d.querySelector('[name="waText"]').value.trim() !== (d.dataset.initial || '').trim();
+    if (!changed || d.querySelector('.wa-discard')) { waClose(); return; }
+    d.querySelector('.dialog-footer').insertAdjacentHTML('afterbegin', `<div class="wa-discard notice" role="alertdialog" aria-label="Descartar mensagem"><span class="grow">Descartar a mensagem que você escreveu?</span>${btn('Continuar escrevendo', 'wa-keep', '', 'secondary sm')}${btn('Descartar', 'wa-close', '', 'danger sm')}</div>`);
+    d.querySelector('[data-action="wa-keep"]').focus();
+}
 document.addEventListener('input', e => { if (e.target.dataset?.input === 'wa-compose') waUpdate(); });
+document.addEventListener('click', e => {
+    const t = e.target.closest?.('[data-action="wa-new-chat"],[data-action="open-wa-thread"]');
+    if (!t) return;
+    if (t.dataset.action === 'wa-new-chat') waComposer({ name: '', phone: '' }, '', { title: 'Nova conversa', newChat: true });
+    else { closeModal(true); whatsapp.open(t.dataset.id); go('conversations'); }
+});
+/** Tocar fora de um menu, do painel de emojis ou da ajuda da tela fecha o que estava aberto (um toque só). */
+document.addEventListener('pointerdown', e => {
+    for (const d of document.querySelectorAll('details[open].wz-menu, details[open].wz-attach, details[open].page-guide')) if (!d.contains(e.target)) d.open = false;
+    const panel = document.getElementById('wa-emoji-panel');
+    if (panel && !panel.hidden && !panel.contains(e.target) && !e.target.closest?.('[data-action="wa-emoji"]')) { panel.hidden = true; document.querySelector('[data-action="wa-emoji"]')?.setAttribute('aria-expanded', 'false'); }
+}, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') for (const d of document.querySelectorAll('details[open].wz-menu, details[open].wz-attach')) { d.open = false; d.querySelector('summary')?.focus(); } });
 document.addEventListener('click', async e => {
     const t = e.target.closest?.('[data-action^="wa-"]');
     if (!t || !document.getElementById('wa-dialog')?.contains(t)) return;
     const a = t.dataset.action;
     if (a === 'wa-close') waClose();
+    if (a === 'wa-keep') { t.closest('.wa-discard')?.remove(); document.querySelector('#wa-dialog [name="waText"]')?.focus(); }
     if (a === 'wa-send-here') await waSendHere(t);
     if (a === 'wa-copy') toast(await copyText(document.querySelector('#wa-dialog [name="waText"]').value) ? 'Texto copiado.' : 'Não foi possível copiar. Selecione o texto manualmente.');
     if (a === 'wa-open') { if (t.getAttribute('aria-disabled') === 'true') { e.preventDefault(); toast('Confira o telefone e a mensagem.'); } else setTimeout(waClose, 300); }
@@ -711,7 +736,7 @@ function alerts() {
 function searchModal() { modal('Encontre no seu ateliê', `<div class="dialog-body"><label class="field"><span>Contatos, orçamentos, tarefas, serviços e produtos</span><input id="global-search" class="search-input" type="search" placeholder="Digite um nome, serviço ou assunto..." data-input="global-search" autocomplete="off"></label><div id="search-results" class="search-results section-gap">${searchResults('')}</div></div>`); }
 function searchResults(query) {
     const q = query.toLocaleLowerCase('pt-BR'), has = (...v) => v.join(' ').toLocaleLowerCase('pt-BR').includes(q), results = [];
-    for (const v of state.conversations) if (q && has(v.contact.name, v.contact.phone, v.summary, v.category)) results.push({ ic: 'chat', title: v.contact.name, sub: 'Atendimento · ' + v.category, action: 'open-conversation', id: v.id });
+    for (const c of whatsapp.contacts()) if (q && has(c.name, c.phone)) results.push({ ic: 'chat', title: c.name, sub: 'Conversa do WhatsApp', action: 'open-wa-thread', id: c.threadId });
     for (const x of state.quotes) if (q && has(contactName(x.contact), x.contact?.phone, serviceLabel(x), x.notes)) results.push({ ic: 'file', title: contactName(x.contact), sub: 'Orçamento · ' + serviceLabel(x), action: 'edit-quote', id: x.id });
     for (const t of state.tasks) if (q && has(t.title, t.contact?.name)) results.push({ ic: 'checklist', title: t.title, sub: 'Tarefa · ' + fmt(t.due), action: 'edit-task', id: t.id });
     for (const s of state.services) if (has(s.name)) results.push({ ic: 'scissors', title: s.name, sub: 'Serviço · ' + s.duration + ' min', action: 'edit-service', id: s.id });

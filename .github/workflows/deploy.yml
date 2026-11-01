@@ -1,4 +1,4 @@
-# Publica o Hanne Essencial na Cloudflare (plano gratuito) a cada push na main ou pelo botão "Run workflow".
+# Alternativa à Cloudflare Workers Builds: publica só pelo botão "Run workflow" (sem disparo automático, para não publicar duas vezes).
 # Segredos do repositório (Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_API_TOKEN  (obrigatório) token da Cloudflare com Workers Scripts, D1 e Workers KV (Edit)
 #   SETUP_TOKEN           (obrigatório no primeiro acesso) código com 16+ caracteres para criar a conta da titular
@@ -6,8 +6,6 @@
 name: Publicar na Cloudflare
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -18,7 +16,7 @@ env:
   # IDs dos recursos já criados na conta (não são segredos).
   CLOUDFLARE_D1_DATABASE_ID: cc1e2021-1f8e-4acc-81de-5434c52baac9
   CLOUDFLARE_KV_MEDIA_ID: 28c1e889cf1c42e1ab0159e211736d68
-  WORKER_NAME: hanne-essencial
+  WORKER_NAME: projeto-salao
   D1_DATABASE_NAME: hanne-essencial-db
 
 jobs:

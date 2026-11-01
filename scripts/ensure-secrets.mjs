@@ -11,7 +11,7 @@ import path from 'node:path';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const wrangler = path.join(root, 'node_modules/wrangler/bin/wrangler.js');
-const worker = process.env.WORKER_NAME || 'hanne-essencial';
+const worker = process.env.WORKER_NAME || 'projeto-salao';
 const env = { ...process.env, WRANGLER_SEND_METRICS: 'false' };
 
 function wr(args, input) {

@@ -356,3 +356,26 @@ html .wz-note-label { display: flex; align-items: center; gap: 4px; font-size: 1
 :root[data-theme=dark] .wz-note-label { color: #f4cf72; }
 html .wa-discard { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1 1 100%; width: 100%; margin: 0 0 4px; }
 html .wa-discard .grow { flex: 1 1 180px; }
+
+/* ---------- Correções visuais ---------- */
+/* Rodapé das janelas: os botões quebram a linha em vez de sair da tela. */
+html dialog .dialog-footer { flex-wrap: wrap; row-gap: 8px; }
+html dialog .dialog-footer .btn { white-space: nowrap; }
+/* Aviso flutuante sempre opaco e legível, nos dois temas. */
+html #toast { background: #231d33; color: #fff; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.28); font-size: 13px; line-height: 1.4; }
+:root[data-theme=dark] #toast { background: #f3f0fa; color: #1c1728; border-color: rgba(0,0,0,.06); }
+/* Campos das janelas nunca passam da borda (no celular o grid tem uma coluna só). */
+html .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+html .form-grid > *, html .field { min-width: 0; }
+html .field input, html .field select, html .field textarea { min-width: 0; max-width: 100%; box-sizing: border-box; }
+@media (max-width: 760px) { html .form-grid { grid-template-columns: minmax(0, 1fr); } }
+/* Lista do WhatsApp no celular: ocupa só a largura da tela. */
+@media (max-width: 900px) { html .wz-inbox { grid-template-columns: minmax(0, 1fr); } html .wz-list, html .wz-thread, html .wz { min-width: 0; max-width: 100%; } }
+/* Atalho do WhatsApp na Visão geral. */
+html .wa-dashboard-link .wa-dashboard-text { flex: 1; text-align: left; color: var(--text); }
+html .wa-dashboard-link .wa-dashboard-text strong { color: var(--accent); font-size: 1.05em; }
+/* Cartão "Aguardando o conector": espaçamento entre as linhas. */
+html .wa-setup p { margin: 8px 0; line-height: 1.5; }
+html .wa-setup .btn { margin: 6px 0; }
+html .wz-list-head { grid-template-columns: minmax(0, 1fr); }
+html .wz-list-head > *, html .wz-chips, html .wz-search { min-width: 0; max-width: 100%; }

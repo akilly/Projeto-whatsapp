@@ -74,6 +74,7 @@ async function contactJid(message) {
   if (original.endsWith('@lid')) return message.key.remoteJidAlt || await socket.signalRepository?.lidMapping?.getPNForLID(original) || '';
   return '';
 }
+const SYSTEM_KEYS = new Set(['protocolMessage', 'senderKeyDistributionMessage', 'messageContextInfo', 'reactionMessage', 'encReactionMessage', 'pollUpdateMessage', 'keepInChatMessage', 'pinInChatMessage', 'editedMessage', 'deviceSentMessage', 'botInvokeMessage', 'callLogMesssage', 'scheduledCallEditMessage']);
 /** Só conversas individuais novas; grupos, status e histórico antigo ficam de fora. */
 async function receive(message) {
   const peer = phoneOf(await contactJid(message)), own = ownPhone();
@@ -88,6 +89,8 @@ async function receive(message) {
   const q = info?.stanzaId && info.quotedMessage ? normalizeMessageContent(info.quotedMessage) || {} : null;
   const context = q ? { id: String(info.stanzaId), text: String(q.conversation || q.extendedTextMessage?.text || q.imageMessage?.caption || (q.imageMessage ? '📷 Foto' : q.audioMessage ? '🎤 Áudio' : '')).slice(0, 300) } : null;
   const type = image ? 'image' : audio ? 'audio' : content.conversation || content.extendedTextMessage ? 'text' : 'unsupported';
+  // Sinais internos (chaves, edição/apagar, reação, sincronização) não viram "mensagem de outro formato".
+  if (type === 'unsupported' && Object.keys(content).every(k => SYSTEM_KEYS.has(k))) return;
   const text = content.conversation || content.extendedTextMessage?.text || image?.caption || '';
   let media, upload;
   if (image || audio) try {

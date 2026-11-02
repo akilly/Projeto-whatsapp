@@ -110,6 +110,34 @@ test('se a profissional já respondeu no atendimento, a automação não envia n
   assert.deepEqual(outs(env).map(m => m.auto), [null]);
 });
 
+test('depois da sua resposta: abertura fica quieta; palavra-chave nova responde; palavra antiga não', async () => {
+  const env = await setup();
+  const rules = [...DEFAULT_RULES.map(r => r.id === 'busy' ? { ...r, enabled: true, delay: 0 } : r), { id: 'pix', name: 'Pix', enabled: true, trigger: 'keywords', keywords: ['pix'], delay: 0, text: 'A chave Pix é 123.' }];
+  await handleWhatsApp(req('automation', 'POST', { rules }), env);
+  // Igual ao teste real: pedido, resposta à mão antes da espera, e a cliente volta a escrever.
+  await sync(env, { events: [message('oi quero agendar para amanha, aceita pix?', { secondsAgo: 300 }), echo('Oi! Tenho às 15h.', 290)] });
+  await sync(env, { events: [message('oi', { secondsAgo: 100 }), message('quero cortar o cabelo', { secondsAgo: 60 })] });
+  await sync(env, {});
+  assert.deepEqual(outs(env).map(m => m.auto), [null], '"Estou ocupada" e o Pix da mensagem antiga não saem');
+  const r = await sync(env, { events: [message('me passa o pix?', { secondsAgo: 0 })] });
+  assert.equal(r.outbox[0]?.text, 'A chave Pix é 123.');
+  await sync(env, { events: [message('pix de novo?', { secondsAgo: 0 })] }); await sync(env, {});
+  assert.equal(outs(env).filter(m => m.auto === 'pix').length, 1, 'uma vez por atendimento');
+});
+
+test('sinais internos do celular (chaves, sincronização) não viram mensagem', async () => {
+  const env = await setup();
+  const n = ++seq;
+  await sync(env, { events: [{ id: 'sys-' + n, type: EVENTS[2], whatsappMessage: { id: 'wa-sys-' + n, from: sender, to: client, type: 'unsupported', sendTime: ago(0) } }] });
+  assert.equal(env.DB.sqlite.prepare('SELECT count(*) n FROM wa_messages').get().n, 0);
+  assert.equal(env.DB.sqlite.prepare('SELECT count(*) n FROM wa_threads').get().n, 0);
+});
+
+test('Agendamento antigo ganha a regra dos 3 dias', () => {
+  const old = normalizeConfig({ categories: [{ name: 'Agendamento', color: 'blue', priority: 'normal', description: 'Quer marcar, remarcar, cancelar ou saber horários disponíveis.' }] });
+  assert.match(old.categories.find(c => c.name === 'Agendamento').description, /Agendamento urgente/);
+});
+
 test('painel: regras e assuntos salvos por salão; ligar uma regra não apaga o resto; assunto à mão', async () => {
   const env = await setup();
   const custom = [{ id: 'greeting', name: 'Boas-vindas', enabled: true, trigger: 'greeting', delay: 180, text: 'Oi {nome}, em que posso ajudar?' }, { id: 'end', name: 'Endereço', enabled: false, trigger: 'keywords', keywords: ['endereço'], text: 'Rua X' }];

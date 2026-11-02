@@ -426,7 +426,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:
 <h3 id="54-regras-de-envio-para-nao-incomodar-a-cliente">5.4 Regras de envio (para não incomodar a cliente)</h3>
 <ul>
 <li>Cada automação sai <strong>no máximo uma vez por atendimento</strong>. Um atendimento novo começa quando a cliente volta a escrever depois de <strong>8 horas</strong> sem conversa.</li>
-<li>Se <strong>você já respondeu</strong> (pelo sistema ou pelo celular), nenhuma automação é enviada naquele atendimento.</li>
+<li>Se <strong>você já respondeu</strong> (pelo sistema ou pelo celular), as automações de abertura (<strong>Boas-vindas</strong>, <strong>Estou ocupada</strong>, <strong>Fora do horário</strong>, <strong>Contato novo</strong>) não saem naquele atendimento. As de <strong>palavras-chave</strong> e de <strong>assunto</strong> continuam valendo, mas só olham o que a cliente escreveu depois da sua resposta.</li>
 <li>Depois que uma automação sai, a próxima só pode sair quando a cliente escrever de novo.</li>
 <li>Conversas classificadas como <strong>spam</strong> não recebem automação.</li>
 <li>As mensagens automáticas aparecem na conversa com a etiqueta <strong>Automática</strong> e o nome da regra.</li>

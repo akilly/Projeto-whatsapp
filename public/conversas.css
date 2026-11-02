@@ -390,3 +390,35 @@ html .wz-status .btn { margin-left: 6px; }
 html #whatsapp { scroll-margin-top: 90px; }
 html .wz-empty .btn { margin-top: 14px; }
 html .wz-status { flex-wrap: wrap; row-gap: 6px; }
+
+/* ---------- Revisão de layout (tablet, notebook e celular) ---------- */
+/* Desktop: menos espaço acima da caixa, para a conversa caber inteira na tela. */
+html #main[data-page="conversations"] .page-heading { margin-bottom: 10px; }
+html #main[data-page="conversations"] .page-heading p { display: none; }
+html #main[data-page="conversations"] .page-guide { margin: -4px 0 10px; }
+html .wz-inbox { height: clamp(520px, calc(100dvh - 280px), 940px); }
+/* Filtros de assunto que não cabem rolam de lado; o esmaecido na borda mostra que há mais. */
+html .wz-chips { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }
+
+/* Tablet (761 a 1000 px): uma coluna de cada vez, como no celular. A conversa aberta ocupa a tela inteira. */
+@media (min-width: 761px) and (max-width: 1000px) {
+  html .wz-inbox { grid-template-columns: 1fr; height: auto; min-height: 0; overflow: visible; }
+  html .wz-list { border-right: 0; background: transparent; }
+  html .wz-contacts { overflow: visible; }
+  html .wz-thread { display: none; }
+  html .wz-inbox.wz-mobile-thread { position: fixed; inset: 0; z-index: 75; height: 100dvh; margin: 0; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; overflow: hidden; }
+  html .wz-mobile-thread .wz-list { display: none; }
+  html .wz-mobile-thread .wz-thread { display: flex; height: 100dvh; }
+  html .wz-back { display: inline-grid; margin-left: -4px; }
+  html .wz-bubble { max-width: 75%; }
+}
+
+/* Celular: cada assunto do painel Automação vira um cartão, para não se misturar com o seguinte. */
+@media (max-width: 760px) {
+  html .automation-category { padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-solid); }
+  html .automation-category .auto-prio { grid-column: 1 / 3; }
+  html .automation-category .automation-desc { grid-column: 1 / -1; }
+  html .automation-category .field select, html .automation-category .field input { font-size: 14px; padding-left: 10px; padding-right: 26px; }
+  html .automation-categories { gap: 10px; }
+  html .page-heading [data-action="v12-delete-list"] { margin-left: 0; }
+}

@@ -333,3 +333,17 @@ html .card > h3.section-gap { padding: 18px 24px 6px; margin: 8px 0 0; font-size
   html .page-heading [data-action="v12-delete-list"] { flex: 0 0 auto; }
   html .card > h3.section-gap { padding: 16px 18px 4px; }
 }
+
+/* ---------- Menu lateral entre 761 e 1200 px (tablet e notebook) ----------
+ * Um arquivo estreitava o menu para 82 px até 1200 px, mas os nomes só eram escondidos até 980 px:
+ * entre 981 e 1200 px os nomes ficavam cortados ("Visã geral", "Ater"). Agora é sempre a barra de ícones,
+ * com o nome disponível para leitores de tela e na dica ao passar o mouse. */
+@media (min-width: 761px) and (max-width: 1200px) {
+  html .sidebar { width: 82px; padding: 24px 11px; }
+  html .workspace { margin-left: 82px; }
+  html .sidebar .brand { padding: 0 9px 25px; }
+  html .sidebar .brand > div:last-child, html .sidebar .nav-label, html .sidebar .focus-box, html .sidebar .demo-label { display: none; }
+  html .sidebar .nav-count:not([hidden]) { display: grid; position: absolute; top: 4px; right: 8px; min-width: 18px; height: 18px; padding: 0 4px; place-items: center; font-size: 10px; border-radius: 999px; margin: 0; }
+  html .sidebar .nav button > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  html .sidebar .nav button { justify-content: center; padding: 11px 8px; position: relative; }
+}

@@ -396,7 +396,14 @@ export function createWhatsAppUI(helpers) {
     document.addEventListener('visibilitychange',()=>{if(!document.hidden&&root?.isConnected)void refresh();});
   }
   function unmount(){controller?.abort();watcher?.abort();watcher=null;if(recorder)stopRecording(true);++generation;loading=false;root=null;}
-  async function count(){if(isExample()||document.hidden||root?.isConnected)return;try{const data=await api('threads');pending=data.pending;onPending(pending);}catch{/* o contador não substitui falhas da caixa */}}
+  async function count(){
+    if(isExample()||document.hidden||root?.isConnected)return;
+    try{
+      const data=await api('threads');pending=data.pending;onPending(pending);
+      // Fora da caixa, guarda a primeira página: a busca global e os contatos sugeridos usam essas conversas.
+      if(Array.isArray(data.threads)){threads=[...data.threads].sort((a,b)=>b.last_at.localeCompare(a.last_at));threadCursor=data.older||null;if(typeof data.rev==='number')rev=data.rev;}
+    }catch{/* o contador não substitui falhas da caixa */}
+  }
   /** Painel de conexão na página Configurações: acompanha o QR Code a cada 3 s enquanto não conecta. */
   function mountConnection(){
     const next=document.getElementById('whatsapp-connection-root');

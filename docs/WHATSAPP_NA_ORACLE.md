@@ -37,7 +37,7 @@ curl -fsSL https://raw.githubusercontent.com/akilly/Projeto-whatsapp/main/servic
 
 ## 3. Ligar ao site
 
-1. No site: **Atendimentos → WhatsApp → Conectar por QR Code**.
+1. No site: **Configurações → WhatsApp → Conectar por QR Code**.
 2. Cole a **mesma chave do conector** e confirme.
 3. Em até um minuto aparece o QR Code. No celular: **WhatsApp Business → Aparelhos conectados → Conectar aparelho**.
 

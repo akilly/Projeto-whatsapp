@@ -5,9 +5,9 @@
  * o campo de resposta. Rascunhos ficam só em memória.
  */
 export function createWhatsAppUI(helpers) {
-  const { esc,btn,field,openForm,modal,closeModal,toast,validate,isExample,confirmLeaving,onPending,aiRun,aiContext,onCreate,related,openAutomation }=helpers;
+  const { esc,btn,field,openForm,modal,closeModal,toast,validate,isExample,confirmLeaving,onPending,aiRun,aiContext,onCreate,related,openAutomation,openSettings }=helpers;
   const aiState=new Map();
-  let root=null,timer=null,controller=null,watcher=null,generation=0,loading=false,error='',connection=null,sessionExpired=false;
+  let root=null,connRoot=null,connTimer=null,connError='',lineId='',timer=null,controller=null,watcher=null,generation=0,loading=false,error='',connection=null,sessionExpired=false;
   let threads=[],pending=null,threadCursor=null,selected='',filter='open',category='',search='',grouped=true,mobileThread=false,older=null,rev=null,automation=null,seenAsked='';
   let recorder=null,recordStart=0,recordTimer=null,recordChunks=[],recordCancel=false;
   const messages=new Map(),drafts=new Map(),cursors=new Map();
@@ -51,12 +51,37 @@ export function createWhatsAppUI(helpers) {
   /** Configuração direta. Nenhum número é registrado ou migrado por este formulário. */
   /** Reconecta usando a chave que já está guardada (cifrada) no sistema: um toque, sem colar nada. */
   async function reconnect(){
-    try{connection=await api('connection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:'baileys'})});toast('Reconectando com a chave já guardada. O QR Code aparece em instantes.');await refresh();}
-    catch(e){error=e.message;paint();}
+    try{connection=await api('connection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:'baileys'})});toast('Reconectando com a chave já guardada. O QR Code aparece em instantes.');repaint();await refreshConnection();}
+    catch(e){connError=e.message;repaint();}
+  }
+  /** Zera o que estava na tela quando o número (canal) muda: as conversas do outro número não aparecem. */
+  function resetLine(){threads=[];messages.clear();cursors.clear();drafts.clear();threadCursor=null;selected='';older=null;pending=null;rev=null;mobileThread=false;onPending(0);}
+  /** Painel de conexão (Configurações): estado, QR Code, reconectar, trocar de número e desconectar. */
+  function connHTML(){
+    const c=connection;
+    if(!c)return connError?`<p class="notice red" role="alert">${esc(connError)}</p>`:'<p class="muted">Consultando a conexão…</p>';
+    const off=c.status==='disconnected',on=!!c.connected;
+    const pill=`<span class="pill ${on?'green':'gray'}">${on?'WhatsApp conectado':off?'WhatsApp desconectado':'Conectando…'}</span>`;
+    const number=on&&c.phone?`<span class="wa-conn-number">${esc(c.phone)}</span>`:off&&c.lastPhone?`<span class="muted">Último número: <strong>${esc(c.lastPhone)}</strong></span>`:'';
+    let buttons='',help='';
+    if(!off){buttons=action('Desconectar','disconnect','secondary sm');help=on?'Para usar outro número, desconecte primeiro. Em seguida aparece a opção Trocar de número.':'';}
+    else if(c.hasSavedKey){
+      buttons=(c.lastPhone?action('Reconectar o número '+esc(c.lastPhone),'reconnect','primary'):action('Gerar QR Code','reconnect','primary'))+(c.lastPhone?action('Trocar de número','switch','secondary'):'')+action('Usar outra chave','configure','text','data-force="1"');
+      help=c.lastPhone?'Reconectar liga o mesmo número de novo. Trocar de número guarda as conversas deste e abre um espaço novo para outro número.':'Gere o QR Code e leia no celular do número que quer usar.';
+    }else{buttons=action('Conectar por QR Code','configure','primary');help='Na primeira vez, cole a chave do conector. Ela fica guardada e não será pedida de novo.';}
+    const saved=c.savedLines?.length?`<p class="small muted">Conversas guardadas de outros números: ${c.savedLines.map(esc).join(', ')}. Elas voltam se você reconectar esse número.</p>`:'';
+    return `<div class="wa-conn"><div class="wa-conn-head row wrap gap8">${pill}${number}</div><div class="row wrap gap8 wa-conn-actions">${buttons}</div>${help?`<p class="small muted">${help}</p>`:''}${connError?`<p class="notice red" role="alert">${esc(connError)}</p>`:''}${setupPanel()}${saved}</div>`;
+  }
+  function paintConn(){if(!connRoot?.isConnected)return;setHTML(connRoot,connHTML());}
+  /** Atualiza o painel e, se estiver aberta, a caixa de conversas. */
+  function repaint(){paint();paintConn();}
+  async function refreshConnection(){
+    if(!connRoot?.isConnected||isExample())return;
+    try{const c=await api('connection');if(c.lineId&&lineId&&c.lineId!==lineId)resetLine();lineId=c.lineId||lineId;connection=c;connError='';}catch(e){connError=e.message;}
+    paintConn();
   }
   function configure(force=false) {
     if(isExample()){toast('Abra os dados reais para configurar o WhatsApp.');return;}
-    if(!force&&connection?.provider==='baileys'&&connection.hasSavedKey&&connection.status==='disconnected'){void reconnect();return;}
     const hasKey=connection?.provider==='baileys'&&connection.hasSavedKey;
     const secret=(label,name,help,attributes='')=>`<div class="full wa-secret">${field(label,name,'','password',`${hasKey?'':'required'} autocomplete="off" aria-describedby="wa-${name}-help" ${attributes}`,true)}${action('Mostrar '+label.toLowerCase(),'reveal','text',`aria-pressed="false" data-label="${esc(label.toLowerCase())}"`)}<p id="wa-${name}-help" class="small muted">${help}</p></div>`;
     openForm('Conectar WhatsApp por QR Code','wa-connect',`<div class="full wa-onboarding"><span class="eyebrow">Conector Baileys</span><ol class="wa-checklist"><li><strong>1. Preparar uma vez</strong><p>Instale o conector (no computador, com Docker ou no servidor gratuito da Oracle) e cole a chave abaixo. Depois disso, não é necessário repetir esta etapa.</p></li><li><strong>2. Ler o QR Code</strong><p>No celular: WhatsApp Business → Aparelhos conectados → Conectar aparelho.</p></li><li><strong>3. Começar a atender</strong><p>Quando aparecer Conectado, envie uma mensagem de outro telefone e responda aqui.</p></li></ol><p><a class="btn secondary sm" href="/baileys-conector.zip" download>Baixar conector e instruções</a></p><p class="notice">Baileys é independente da Meta. Pode sofrer interrupções ou restrições do WhatsApp. Não há garantia de estabilidade nem de ausência de bloqueios.</p></div>${secret('Chave do conector','bridgeKey',hasKey?'Já existe uma chave guardada (cifrada). Deixe em branco para continuar com ela; cole outra só se tiver reinstalado o conector com uma chave nova.':'O instalador mostra a chave. Ela fica cifrada e guardada: você cola uma vez só. Não a envie pelo chat.','minlength="32" maxlength="160" pattern="[a-zA-Z0-9_-]{32,160}"')}<label class="row full small"><input type="checkbox" required>Este conector é exclusivo desta conta e estou ciente de que o Baileys não é uma integração oficial.</label>`,'Preparar QR Code','',true);
@@ -72,7 +97,7 @@ export function createWhatsAppUI(helpers) {
   /** Esqueleto estável: barra, lista (busca, filtros e assuntos) e conversa. */
   function shell() {
     const chip=(label,value,attr='filter')=>`<button type="button" class="wz-chip" data-action="wa-${attr}" data-value="${esc(value)}" aria-pressed="false">${label}</button>`;
-    return `<section class="wz" aria-label="Atendimento pelo WhatsApp"><div class="wz-toolbar"><div id="wa-status" class="wz-status" role="status" aria-live="polite"></div><div class="wz-toolbar-actions"><div class="wz-busy" role="group" aria-label="Mensagem automática de ocupada"><span class="wz-busy-label" title="Quando ligada, a cliente que disser o que precisa recebe o aviso de que você responde assim que possível.">Estou ocupada</span><div class="theme-control wz-seg"><button type="button" data-action="wa-busy" data-value="false" aria-pressed="true" class="active">Desligada</button><button type="button" data-action="wa-busy" data-value="true" aria-pressed="false">Ligada</button></div></div>${openAutomation?action('Automação','automation','text sm'):''}${action('Atualizar','refresh','secondary sm')}${action('Conectar por QR Code','configure','primary sm')}</div></div><div id="wa-error" class="notice red" role="alert" hidden></div><a id="wa-session" class="btn secondary" href="/" target="_top" hidden>Entrar novamente · copie seu rascunho antes</a><div id="wa-setup-panel"></div><div class="wz-inbox card"><aside class="wz-list" aria-label="Conversas"><div class="wz-list-head"><div class="wz-list-title"><h3>Conversas</h3><span id="wa-pending" class="small muted"></span></div><label class="wz-search">${svg(IC.search)}<span class="sr-only">Buscar conversa</span><input type="search" data-wa-input="search" placeholder="Buscar nome, número ou mensagem" autocomplete="off"></label><div class="wz-chips" role="group" aria-label="Situação">${chip('Pendentes','open')}${chip('Não lidas','unread')}${chip('Todas','all')}${chip('Resolvidas','resolved')}</div><div id="wa-cats" class="wz-chips wz-cats" role="group" aria-label="Assunto"></div><button type="button" class="wz-group-toggle" data-action="wa-group" aria-pressed="true">Separar por assunto</button></div><div id="wa-contacts" class="wz-contacts"></div><div id="wa-more-threads"></div></aside><section class="wz-thread" id="wa-thread"><div class="wz-empty"></div></section></div><p class="small muted wa-footnote">Horários de Brasília. Resolver organiza sua lista; uma nova mensagem reabre a pendência. Enter envia; Shift+Enter quebra a linha.</p></section>`;
+    return `<section class="wz" aria-label="Atendimento pelo WhatsApp"><div class="wz-toolbar"><div id="wa-status" class="wz-status" role="status" aria-live="polite"></div><div class="wz-toolbar-actions"><div class="wz-busy" role="group" aria-label="Mensagem automática de ocupada"><span class="wz-busy-label" title="Quando ligada, a cliente que disser o que precisa recebe o aviso de que você responde assim que possível.">Estou ocupada</span><div class="theme-control wz-seg"><button type="button" data-action="wa-busy" data-value="false" aria-pressed="true" class="active">Desligada</button><button type="button" data-action="wa-busy" data-value="true" aria-pressed="false">Ligada</button></div></div>${openAutomation?action('Automação','automation','text sm'):''}${action('Atualizar','refresh','secondary sm')}</div></div><div id="wa-error" class="notice red" role="alert" hidden></div><a id="wa-session" class="btn secondary" href="/" target="_top" hidden>Entrar novamente · copie seu rascunho antes</a><div class="wz-inbox card"><aside class="wz-list" aria-label="Conversas"><div class="wz-list-head"><div class="wz-list-title"><h3>Conversas</h3><span id="wa-pending" class="small muted"></span></div><label class="wz-search">${svg(IC.search)}<span class="sr-only">Buscar conversa</span><input type="search" data-wa-input="search" placeholder="Buscar nome, número ou mensagem" autocomplete="off"></label><div class="wz-chips" role="group" aria-label="Situação">${chip('Pendentes','open')}${chip('Não lidas','unread')}${chip('Todas','all')}${chip('Resolvidas','resolved')}</div><div id="wa-cats" class="wz-chips wz-cats" role="group" aria-label="Assunto"></div><button type="button" class="wz-group-toggle" data-action="wa-group" aria-pressed="true">Separar por assunto</button></div><div id="wa-contacts" class="wz-contacts"></div><div id="wa-more-threads"></div></aside><section class="wz-thread" id="wa-thread"><div class="wz-empty"></div></section></div><p class="small muted wa-footnote">Horários de Brasília. Resolver organiza sua lista; uma nova mensagem reabre a pendência. Enter envia; Shift+Enter quebra a linha.</p></section>`;
   }
   /** Conversas do filtro atual, já com a busca aplicada. */
   function visible(){
@@ -123,9 +148,7 @@ export function createWhatsAppUI(helpers) {
     if(!root?.isConnected)return;
     root.querySelector('#wa-session').hidden=!sessionExpired;root.querySelector('#wa-error').hidden=!error;root.querySelector('#wa-error').textContent=error;
     const configured=connection?.provider==='baileys'&&connection.status!=='disconnected'||connection?.provider==='meta'&&connection.credentialsVerified;
-    setHTML(root.querySelector('#wa-status'),connection?`<span class="pill ${connection.connected?'green':'gray'}">${connection.connected?'WhatsApp conectado':configured?'Conectando…':'Desconectado'}</span><span>${connection.phone?esc(connection.phone):''}${connection.provider==='baileys'&&connection.status==='disconnected'?' Use Conectar por QR Code para ligar de novo.':''}</span>${connection.status!=='disconnected'?action('Desconectar','disconnect','text'):connection.hasSavedKey?action('Usar outra chave','configure','text','data-force="1"'):''}`:loading?'Consultando conexão…':'');
-    setHTML(root.querySelector('#wa-setup-panel'),setupPanel());
-    const configButton=root.querySelector('[data-action="wa-configure"]');configButton.textContent=connection?.provider==='baileys'&&connection.status!=='disconnected'?'Configuração avançada':connection?.hasSavedKey?'Reconectar':'Conectar por QR Code';configButton.classList.toggle('primary',!connection?.connected);configButton.classList.toggle('secondary',!!connection?.connected);
+    setHTML(root.querySelector('#wa-status'),connection?`<span class="pill ${connection.connected?'green':'gray'}">${connection.connected?'WhatsApp conectado':connection.status==='disconnected'?'WhatsApp desconectado':'Conectando…'}</span>${connection.connected&&connection.phone?`<span>${esc(connection.phone)}</span>`:''}${connection.connected?'':`<span class="muted">${connection.status==='disconnected'?'Ligue o WhatsApp em Configurações.':connection.qr||connection.status==='pairing'?'Leia o QR Code em Configurações.':'Aguardando o conector.'}</span>${openSettings?action(connection.status==='disconnected'?'Abrir Configurações':'Ver QR Code','open-settings','primary sm'):''}`}`:loading?'Consultando conexão…':'');
     root.querySelectorAll('[data-action="wa-busy"]').forEach(b=>{const on=String(!!rule('busy')?.enabled)===b.dataset.value;b.setAttribute('aria-pressed',String(on));b.classList.toggle('active',on);b.disabled=!automation;});
     root.querySelector('#wa-pending').textContent=pending===null?'':`${pending} ${pending===1?'pendente':'pendentes'}`;
     root.querySelectorAll('[data-action="wa-filter"]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.value===filter)));
@@ -139,7 +162,7 @@ export function createWhatsAppUI(helpers) {
     if(!t){
       panel.dataset.thread='';
       if(!panel.querySelector('.wz-empty'))panel.innerHTML='<div class="wz-empty"></div>';
-      setHTML(panel.querySelector('.wz-empty'),connection?.connected?(threads.length?`<div class="wz-empty-art">${svg(IC.send)}</div><h3>Selecione uma conversa</h3><p>As pendentes ficam separadas por assunto, com a solicitação de cada cliente em destaque.</p>`:'<h3>Pronto para receber.</h3><p>Envie uma mensagem ao número conectado usando outro celular.</p>'):configured?'<h3>Conectando o WhatsApp…</h3><p>Siga as etapas acima. As conversas aparecem aqui assim que o número estiver conectado.</p>':`<h3>Seu atendimento, no mesmo lugar.</h3><p>Conecte o WhatsApp por QR Code para receber e responder pelo sistema.</p>${connection?.hasSavedKey?action('Reconectar com a chave guardada','configure','primary')+action('Usar outra chave','configure','text','data-force="1"'):action('Configurar conexão','configure','primary')}`);
+      setHTML(panel.querySelector('.wz-empty'),connection?.connected?(threads.length?`<div class="wz-empty-art">${svg(IC.send)}</div><h3>Selecione uma conversa</h3><p>As pendentes ficam separadas por assunto, com a solicitação de cada cliente em destaque.</p>`:'<h3>Pronto para receber.</h3><p>Envie uma mensagem ao número conectado usando outro celular.</p>'):configured?`<h3>Conectando o WhatsApp…</h3><p>Leia o QR Code em Configurações. As conversas aparecem aqui assim que o número estiver conectado.</p>${openSettings?action('Ver QR Code','open-settings','primary'):''}`:`<h3>Seu atendimento, no mesmo lugar.</h3><p>Ligue o WhatsApp em Configurações para receber e responder pelo sistema.</p>${openSettings?action('Abrir Configurações','open-settings','primary'):''}`);
       return;
     }
     if(panel.dataset.thread!==selected){
@@ -215,7 +238,7 @@ export function createWhatsAppUI(helpers) {
     try{
       const [c,list]=await Promise.all([api('connection',{signal:controller.signal}),api('threads'+(moreThreads&&threadCursor?'?before='+encodeURIComponent(threadCursor):''),{signal:controller.signal})]);
       if(!automation)automation=(await api('automation',{signal:controller.signal}).catch(()=>null))?.config||null;
-      if(own!==generation)return;connection=c;pending=list.pending;onPending(pending);if(typeof list.rev==='number')rev=list.rev;
+      if(own!==generation)return;if(c.lineId&&lineId&&c.lineId!==lineId){resetLine();}lineId=c.lineId||lineId;connection=c;pending=list.pending;onPending(pending);if(typeof list.rev==='number')rev=list.rev;
       const map=new Map((moreThreads?threads:threads.filter(t=>!list.threads.some(x=>x.id===t.id))).map(t=>[t.id,t]));for(const t of list.threads)map.set(t.id,t);threads=[...map.values()].sort((a,b)=>b.last_at.localeCompare(a.last_at));
       if(moreThreads||!threadCursor)threadCursor=list.older;
       if(thread){const data=await api('thread/'+encodeURIComponent(thread)+(moreMessages&&older?'?before='+encodeURIComponent(older):''),{signal:controller.signal});if(own!==generation||selected!==thread)return;for(const m of data.messages)messages.set(m.id,{...m,threadId:thread});if(moreMessages||!cursors.has(thread))cursors.set(thread,data.older);older=cursors.get(thread);}
@@ -303,11 +326,15 @@ export function createWhatsAppUI(helpers) {
     if(name==='create-quote'||name==='create-task'){const t=threads.find(x=>x.id===selected);if(t&&onCreate)onCreate(name==='create-quote'?'quote':'task',{name:t.name,phone:t.peer,threadId:t.id,summary:aiState.get(selected)?.summary||t.ai_request||''});return;}
     if(name==='ai-summary'||name==='ai-reply'){await runAI(name==='ai-summary'?'summary':'reply');return;}
     if(name==='configure')configure(!!button.dataset.force);
+    if(name==='open-settings')openSettings?.();
+    if(name==='reconnect'){button.disabled=true;await reconnect();return;}
+    if(name==='switch'){modal('Trocar de número?',`<div class="dialog-body"><p>As conversas de <strong>${esc(connection?.lastPhone||'este número')}</strong> ficam guardadas no sistema e saem da lista. Nada é apagado, e elas voltam se você reconectar esse número.</p><p>Depois você lê o QR Code do número novo, que começa com a caixa de conversas vazia.</p></div>`,action('Cancelar','cancel-disconnect')+action('Trocar de número','confirm-switch','primary'));document.querySelector('[data-action="wa-cancel-disconnect"]')?.focus();return;}
+    if(name==='confirm-switch'){button.disabled=true;try{connection=await api('connection/switch',{method:'POST'});resetLine();lineId=connection.lineId||'';closeModal(true);toast('Pronto. Leia o QR Code do número novo.');repaint();await refreshConnection();}catch(e){closeModal(true);connError=e.message;repaint();}return;}
     if(name==='automation')openAutomation?.();
     if(name==='busy'){const on=button.dataset.value==='true';if(!rule('busy')||rule('busy').enabled===on)return;const before=automation;automation={...automation,rules:automation.rules.map(r=>r.id==='busy'?{...r,enabled:on}:r)};paint();try{automation=(await post('automation',{toggle:{id:'busy',enabled:on}})).config;toast(on?'Aviso de ocupada ligado: quem disser o que precisa recebe a mensagem.':'Aviso de ocupada desligado.');}catch(e){automation=before;toast(e.message);}paint();return;}
     if(name==='reveal'){const input=button.closest('.wa-secret').querySelector('input');input.type=input.type==='password'?'text':'password';button.textContent=(input.type==='password'?'Mostrar ':'Ocultar ')+(button.dataset.label||'chave');button.setAttribute('aria-pressed',String(input.type==='text'));}
     if(name==='refresh'){automation=null;await refresh();}
-    if(name==='copy'){const input=root.querySelector(button.dataset.copy==='url'?'#wa-callback-url':'#wa-verify-token');try{await navigator.clipboard.writeText(input.value);toast('Valor copiado.');}catch{input.focus();input.select();toast('Valor selecionado. Use Copiar no seu dispositivo.');}}
+    if(name==='copy'){const input=document.querySelector(button.dataset.copy==='url'?'#wa-callback-url':'#wa-verify-token');try{await navigator.clipboard.writeText(input.value);toast('Valor copiado.');}catch{input.focus();input.select();toast('Valor selecionado. Use Copiar no seu dispositivo.');}}
     if(name==='copy-text'){const m=messages.get(button.dataset.id);try{await navigator.clipboard.writeText(m?.body||'');toast('Texto copiado.');}catch{toast('Não foi possível copiar neste navegador.');}}
     if(name==='reply'){const m=messages.get(button.dataset.id);if(!m)return;draft().quote={id:m.id,direction:m.direction,body:m.body||(m.type==='image'?'📷 Foto':m.type==='audio'?'🎤 Áudio':'')};paint();root?.querySelector('[data-form="wa-send"] textarea')?.focus();}
     if(name==='quote-cancel'){draft().quote=null;paint();}
@@ -318,8 +345,8 @@ export function createWhatsAppUI(helpers) {
     if(name==='record-cancel')stopRecording(true);
     if(name==='record-send')stopRecording(false);
     if(name==='scroll-down'){const log=root?.querySelector('#wa-log');if(log)log.scrollTop=log.scrollHeight;button.hidden=true;}
-    if(name==='pair-again'){button.disabled=true;try{connection=await api('connection/retry',{method:'POST'});paint();toast('Aguardando QR Code. O conector precisa estar ligado.');}catch(e){error=e.message;paint();}finally{button.disabled=false;}return;}
-    if(name==='retry-connection'){button.disabled=true;try{connection=await api('connection/retry',{method:'POST'});paint();}catch(e){error=e.message;paint();}finally{button.disabled=false;}return;}
+    if(name==='pair-again'){button.disabled=true;try{connection=await api('connection/retry',{method:'POST'});repaint();toast('Aguardando QR Code. O conector precisa estar ligado.');}catch(e){connError=e.message;repaint();}finally{button.disabled=false;}return;}
+    if(name==='retry-connection'){button.disabled=true;try{connection=await api('connection/retry',{method:'POST'});repaint();}catch(e){connError=e.message;repaint();}finally{button.disabled=false;}return;}
     if(name==='filter'){filter=button.dataset.value;paint();}
     if(name==='category'){category=button.dataset.value;paint();}
     if(name==='group'){grouped=!grouped;paint();}
@@ -333,7 +360,7 @@ export function createWhatsAppUI(helpers) {
     if(name==='resolve'){button.disabled=true;try{await post('thread/'+encodeURIComponent(selected),{resolved:button.dataset.resolved==='true'});const t=threads.find(x=>x.id===selected);if(t)t.resolved=button.dataset.resolved==='true';toast(button.dataset.resolved==='true'?'Conversa resolvida.':'Conversa reaberta.');await refresh();}catch(e){error=e.message;paint();}finally{button.disabled=false;}}
     if(name==='disconnect'){modal('Desconectar o WhatsApp?',`<div class="dialog-body"><p>O sistema deixará de receber e enviar pelo número ${esc(connection?.phone)}. As conversas já recebidas continuam salvas. No Baileys, esta ação encerra a sessão do aparelho no conector.</p></div>`,action('Continuar conectado','cancel-disconnect')+action('Desconectar','confirm-disconnect','danger'));document.querySelector('[data-action="wa-cancel-disconnect"]')?.focus();}
     if(name==='cancel-disconnect')closeModal(true);
-    if(name==='confirm-disconnect'){button.disabled=true;try{await api('connection',{method:'DELETE'});closeModal(true);toast('WhatsApp desconectado neste sistema.');await refresh();}catch(e){error=e.message;closeModal(true);paint();}}
+    if(name==='confirm-disconnect'){button.disabled=true;try{await api('connection',{method:'DELETE'});closeModal(true);toast('WhatsApp desconectado neste sistema.');await refreshConnection();await refresh();repaint();}catch(e){connError=e.message;closeModal(true);repaint();}}
   }
   /** Instala uma vez: cliques, digitação (Enter envia), colar/arrastar imagem e anexos. */
   function install() {
@@ -362,15 +389,25 @@ export function createWhatsAppUI(helpers) {
     });
     document.addEventListener('submit',async event=>{const form=event.target,kind=form.dataset.form;if(!kind?.startsWith('wa-'))return;event.preventDefault();if(kind==='wa-send'){await sendMessage(form);return;}if(kind!=='wa-connect'||form.dataset.busy||!validate(form))return;
       form.dataset.busy='true';form.querySelector('[type="submit"]').disabled=true;
-      try{const fd=new FormData(form);connection=await api('connection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:'baileys',bridgeKey:String(fd.get('bridgeKey')||'').trim()})});form.elements.bridgeKey.value='';form.dataset.dirty='';delete form.dataset.busy;closeModal(true);toast('Chave cadastrada. O QR Code aparece aqui assim que o conector responder.');await refresh();}
+      try{const fd=new FormData(form);connection=await api('connection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:'baileys',bridgeKey:String(fd.get('bridgeKey')||'').trim()})});form.elements.bridgeKey.value='';form.dataset.dirty='';delete form.dataset.busy;closeModal(true);toast('Chave guardada. O QR Code aparece aqui assim que o conector responder.');await refreshConnection();await refresh();}
       catch(e){const alert=form.querySelector('[role="alert"]');alert.textContent=e.message;form.elements.bridgeKey.setAttribute('aria-invalid','true');form.elements.bridgeKey.focus();}
-      finally{delete form.dataset.busy;form.querySelector('[type="submit"]').disabled=false;paint();}
+      finally{delete form.dataset.busy;form.querySelector('[type="submit"]').disabled=false;repaint();}
     });
     document.addEventListener('visibilitychange',()=>{if(!document.hidden&&root?.isConnected)void refresh();});
   }
   function unmount(){controller?.abort();watcher?.abort();watcher=null;if(recorder)stopRecording(true);++generation;loading=false;root=null;}
   async function count(){if(isExample()||document.hidden||root?.isConnected)return;try{const data=await api('threads');pending=data.pending;onPending(pending);}catch{/* o contador não substitui falhas da caixa */}}
+  /** Painel de conexão na página Configurações: acompanha o QR Code a cada 3 s enquanto não conecta. */
+  function mountConnection(){
+    const next=document.getElementById('whatsapp-connection-root');
+    if(next===connRoot)return;
+    clearInterval(connTimer);connTimer=null;connRoot=next;
+    if(!next||isExample())return;
+    paintConn();void refreshConnection();
+    connTimer=setInterval(()=>{if(!connRoot?.isConnected){clearInterval(connTimer);connTimer=null;connRoot=null;return;}if(document.hidden)return;if(!connection||!connection.connected||connection.status!=='ready'||Date.now()%15000<3000)void refreshConnection();},3000);
+  }
   function mount(){
+    mountConnection();
     const next=document.getElementById('whatsapp-root');
     // Fora da caixa: só o contador do menu (30 s). Dentro: espera novidades (/updates) e confere a conexão a cada 30 s.
     if(!timer&&!isExample()&&document.getElementById('main')?.isConnected){void count();timer=setInterval(()=>{if(document.hidden)return;if(root?.isConnected)void refresh();else void count();},30000);}

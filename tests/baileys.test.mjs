@@ -66,6 +66,37 @@ test('desconectar mantém a chave guardada: reconecta sem colar de novo (e nunca
   assert.equal((await handleWhatsApp(req('connection', 'POST', { provider: 'baileys' }, 'b'), env)).status, 400);
 });
 
+test('trocar de número: conversas do antigo ficam guardadas, o novo começa vazio e o antigo reconecta com tudo de volta', async () => {
+  const { env } = await setup();
+  const other = '+5511888888888', threads = async () => (await (await handleWhatsApp(req('threads'), env)).json()).threads;
+  await sync(env, { status: 'ready', phone: sender, events: [inbound] });
+  assert.equal((await threads()).length, 1);
+  // Desconectar mantém o número como "último número" (não aparece como número da conexão).
+  await handleWhatsApp(req('connection', 'DELETE'), env);
+  await sync(env, { status: 'disconnected' });
+  const off = await (await handleWhatsApp(req('connection'), env)).json();
+  assert.equal(off.phone, ''); assert.equal(off.lastPhone, sender); assert.equal(off.hasSavedKey, true);
+  // Reconectar o mesmo número não exige nada novo; outro número só pela troca.
+  assert.equal((await handleWhatsApp(req('connection/switch', 'POST'), env)).status, 200);
+  const fresh = await (await handleWhatsApp(req('connection'), env)).json();
+  assert.ok(!fresh.lastPhone && !fresh.phone); assert.deepEqual(fresh.savedLines, [sender]); assert.equal((await threads()).length, 0, 'conversas do número antigo saem da lista');
+  assert.equal((await (await sync(env, { status: 'pairing', qr: QR })).json()).command, 'pair');
+  await sync(env, { status: 'ready', phone: other, events: [{ ...inbound, id: 'in-2', whatsappInboundMessage: { ...inbound.whatsappInboundMessage, id: 'wa-in-2', to: other, from: '+5541777777777' } }] });
+  const now = await (await handleWhatsApp(req('connection'), env)).json();
+  assert.equal(now.phone, other); assert.equal(now.status, 'ready');
+  const list = await threads(); assert.equal(list.length, 1); assert.equal(list[0].peer, '+5541777777777');
+  // Volta ao número antigo: as conversas dele reaparecem e as do novo ficam guardadas.
+  await handleWhatsApp(req('connection', 'DELETE'), env); await sync(env, { status: 'disconnected' });
+  assert.equal((await handleWhatsApp(req('connection/switch', 'POST'), env)).status, 200);
+  await sync(env, { status: 'pairing', qr: QR });
+  await sync(env, { status: 'ready', phone: sender });
+  const back = await (await handleWhatsApp(req('connection'), env)).json();
+  assert.equal(back.phone, sender); assert.deepEqual(back.savedLines, [other]);
+  const old = await threads(); assert.equal(old.length, 1); assert.equal(old[0].peer, '+5541999999999');
+  // Só com o WhatsApp desconectado.
+  assert.equal((await handleWhatsApp(req('connection/switch', 'POST'), env)).status, 409);
+});
+
 test('conectado: número fica vinculado; outro número é desconectado pelo conector', async () => {
   const { env } = await setup();
   const status = await (await handleWhatsApp(req('connection'), env)).json();

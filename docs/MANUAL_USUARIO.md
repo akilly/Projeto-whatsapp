@@ -69,36 +69,50 @@ O atalho **Novo orçamento** e **Nova tarefa** fica no topo da tela.
 
 O Hanne usa o número do seu **WhatsApp Business** por meio de um pequeno programa chamado **conector**, que fica ligado 24 horas (em um servidor gratuito da Oracle ou no computador do ateliê) e conversa com o site. A instalação do conector é feita uma única vez; o passo a passo está em [WHATSAPP_NA_ORACLE.md](WHATSAPP_NA_ORACLE.md).
 
+> **Onde fica:** toda a conexão (chave, QR Code, reconectar, trocar de número e desconectar) está em **Configurações → WhatsApp**. A tela de Atendimentos só mostra o estado e, quando preciso, um botão **Abrir Configurações**.
+
 ### Primeira conexão
 
 1. Instale o conector e anote a **chave do conector** (letras, números, `-` ou `_`; 32 a 160 caracteres).
-2. No site: **Atendimentos → Conectar por QR Code**.
+2. Vá em **Configurações → WhatsApp → Conectar por QR Code**.
 3. Cole a chave, marque a confirmação e toque em **Preparar QR Code**.
-4. Em até um minuto aparece o QR Code. No celular: **WhatsApp Business → Aparelhos conectados → Conectar aparelho** e leia o código.
-5. Quando o status mudar para **WhatsApp conectado**, já pode atender.
+4. Em até um minuto aparece o QR Code, ali mesmo em Configurações. No celular: **WhatsApp Business → Aparelhos conectados → Conectar aparelho** e leia o código.
+5. Quando o status mudar para **WhatsApp conectado** (e o número aparecer ao lado), já pode atender em Atendimentos.
 
 > **Importante:** o QR Code é temporário e privado. Se expirar, toque em **Gerar novo QR Code**.
 
-### Reconectar depois (sem colar a chave de novo)
+### A chave é pedida só uma vez
 
-A chave fica **guardada com segurança (cifrada)** no sistema. Se você tocar em **Desconectar** e quiser ligar de novo:
+A chave fica **guardada com segurança (cifrada)** e **não é pedida de novo**, nem ao desconectar e reconectar. Ela só aparece em Configurações, em **Usar outra chave**, e só serve quando você reinstala o conector e ele ganha uma chave nova.
 
-1. Toque em **Reconectar** (ou **Reconectar com a chave guardada**).
-2. Leia o novo QR Code no celular.
+### Desconectar e reconectar o mesmo número
 
-Você só cola a chave outra vez se reinstalar o conector e ele ganhar uma chave nova: nesse caso use **Usar outra chave**.
+1. Em **Configurações → WhatsApp**, toque em **Desconectar** e confirme.
+2. O status passa a **WhatsApp desconectado** e o número aparece apenas como **Último número**. Em Atendimentos o número deixa de aparecer.
+3. Para ligar de novo, toque em **Reconectar o número …** e leia o novo QR Code.
 
 > **Atenção:** desconectar encerra a sessão do aparelho no conector, mas **não apaga** as conversas já recebidas nem sai do WhatsApp Business do celular.
 
-### Mesmo número
+### Trocar para outro número
 
-O sistema vincula o primeiro número lido. Se alguém ler o QR com outro número, a conexão avisa e pede para você usar o número já vinculado (ou desconectar para trocar).
+Com o WhatsApp desconectado, em **Configurações → WhatsApp**:
+
+1. Toque em **Trocar de número** e confirme.
+2. As conversas do número antigo **somem da lista e ficam guardadas** no sistema. Nada é apagado.
+3. Leia o QR Code do número novo. A caixa de conversas começa vazia.
+4. Se um dia você reconectar o número antigo, as conversas dele **voltam**. Os números guardados aparecem em Configurações, em "Conversas guardadas de outros números".
+
+Cada conta do Hanne usa **um número por vez**. Para dois números ao mesmo tempo, use um salão (conta) separado para cada um.
+
+### Número vinculado
+
+Sem trocar de número, o sistema só aceita o número já vinculado. Se alguém ler o QR com outro número, a conexão avisa e pede para você desconectar e usar **Trocar de número**.
 
 ---
 
 ## 4. Atendimentos
 
-Aqui ficam as conversas reais do número conectado, com a aparência do próprio WhatsApp. A tela se atualiza sozinha: a nova mensagem aparece em poucos segundos, sem precisar recarregar.
+Aqui ficam as conversas reais do número conectado, com a aparência do próprio WhatsApp. A tela se atualiza sozinha: a nova mensagem aparece em poucos segundos, sem precisar recarregar. Se o WhatsApp estiver desconectado, o topo avisa e mostra o botão **Abrir Configurações**.
 
 ### 4.1 A lista de conversas
 
@@ -346,6 +360,7 @@ O catálogo do ateliê: **nome**, **descrição**, **duração**, **produtos usa
 | **Aparência** | Claro ou escuro suave, salvo neste aparelho. |
 | **Seu ateliê** | Como prefere ser chamada e o prazo de resposta de referência (em minutos). |
 | **Sua conta** | Trocar e-mail (pede a senha atual) e trocar senha (os outros aparelhos precisam entrar de novo). **Sair da conta.** |
+| **WhatsApp** | Conectar, ler o QR Code, reconectar, trocar de número e desconectar. Aqui (e só aqui) fica a chave do conector. |
 | **Salões** | Para a titular: convidar outro salão. Cada salão tem login e dados próprios, e nenhum vê os dados do outro. O convite vale 7 dias e só pode ser usado uma vez. |
 | **Conexões e acesso** | Estado da sincronização, do WhatsApp e da inteligência artificial. |
 | **Exportar e cópia** | **Exportar dados** (CSV ou PDF) e **Cópia completa JSON** com todos os registros. |
@@ -378,21 +393,25 @@ Use **Excluir registro** no topo de cada tela, ou o botão dentro da ficha. Ante
 
 ### A mensagem da cliente não chegou
 
-1. Veja o status no topo: **WhatsApp conectado** (verde) ou **Conectando…**.
+1. Veja o status no topo de Atendimentos: **WhatsApp conectado** (verde) ou **Conectando…**. Se estiver desconectado, abra Configurações → WhatsApp.
 2. Se aparecer "O conector do computador não se comunica", confira se o servidor do conector está ligado e com internet.
 3. Toque em **Atualizar**.
 
 ### Aparece "Aguardando o conector" e o QR não vem
 
-Espere alguns minutos depois de instalar ou reiniciar o conector. Se continuar, toque em **Gerar novo QR Code** e confira o conector (veja [WHATSAPP_NA_ORACLE.md](WHATSAPP_NA_ORACLE.md), seção "Se o QR Code não aparecer").
+Espere alguns minutos depois de instalar ou reiniciar o conector. Se continuar, em **Configurações → WhatsApp** toque em **Gerar novo QR Code** e confira o conector (veja [WHATSAPP_NA_ORACLE.md](WHATSAPP_NA_ORACLE.md), seção "Se o QR Code não aparecer").
 
 ### O QR Code expirou
 
-Toque em **Gerar novo QR Code** e leia de novo.
+Em **Configurações → WhatsApp**, toque em **Gerar novo QR Code** e leia de novo.
 
-### Quero reconectar e a chave foi pedida de novo
+### Desconectei e o número antigo continua aparecendo
 
-Depois de **Desconectar**, use **Reconectar** (a chave fica guardada). Se for pedida, é porque o conector foi reinstalado com chave nova ou este é o primeiro cadastro: cole a chave do instalador uma vez.
+Depois de **Desconectar**, o número deixa de ser o número da conexão e aparece só como **Último número**, em Configurações. Para usar outro número, toque em **Trocar de número**.
+
+### A chave foi pedida de novo
+
+Ela só é pedida em Configurações, na primeira conexão ou quando você escolhe **Usar outra chave** (por exemplo, depois de reinstalar o conector).
 
 ### Os clientes veem um aviso de versão do WhatsApp
 
@@ -423,7 +442,8 @@ Não. Nota interna nunca é enviada. Ela é identificada pelo balão amarelo e p
 | Termo | Significado |
 |---|---|
 | **Conector** | Programa que mantém o WhatsApp Business ligado ao site, 24 horas. |
-| **Chave do conector** | Senha do conector. Guardada cifrada no sistema; você cola uma vez. |
+| **Chave do conector** | Senha do conector. Guardada cifrada no sistema; você cola uma vez, em Configurações. |
+| **Trocar de número** | Guarda as conversas do número atual e abre um espaço novo para outro número. |
 | **Atendimento** | Uma sequência de conversa. Um novo começa quando a cliente volta depois de 8 horas. |
 | **Solicitação** | O resumo do que a cliente quer agora, escrito pela IA. |
 | **Assunto** | A categoria da conversa (Pagamento, Agendamento, Segurança…). |

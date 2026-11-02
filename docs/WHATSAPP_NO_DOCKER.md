@@ -2,7 +2,7 @@
 
 O conector (Baileys) precisa ficar ligado o tempo todo. Com Docker ele roda em qualquer máquina que fique ligada, de graça: o computador do ateliê (Docker Desktop), um servidor gratuito (Oracle Cloud Always Free) ou um mini PC. O container reinicia sozinho se a máquina reiniciar.
 
-O QR Code aparece no próprio site (Atendimentos → WhatsApp), não no terminal.
+O QR Code aparece no próprio site (Configurações → WhatsApp), não no terminal.
 
 ## 1. Pré-requisitos
 
@@ -36,7 +36,7 @@ Deve aparecer “Conector iniciado” e “Aguardando o ateliê pedir o QR Code�
 
 ## 4. Ligar ao site
 
-1. No site: **Atendimentos → WhatsApp → Conectar por QR Code**.
+1. No site: **Configurações → WhatsApp → Conectar por QR Code**.
 2. Cole a mesma `BRIDGE_KEY` e confirme.
 3. Leia o QR Code com o celular: WhatsApp Business → **Aparelhos conectados → Conectar aparelho**.
 

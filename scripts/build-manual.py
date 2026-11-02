@@ -18,6 +18,15 @@ def callout(m):
         kind = 'tip' if t.startswith('dica') else 'warn' if t.startswith(('atenção', 'importante')) else 'sum' if t.startswith('em uma') else 'note'
     return f'<aside class="callout {kind}">{inner}</aside>'
 body = re.sub(r'<blockquote>(.*?)</blockquote>', callout, body, flags=re.S)
+# Links internos escritos com acento (como o GitHub aceita) apontam para ids sem acento.
+import unicodedata
+ids = set(re.findall(r'id="([^"]+)"', body))
+def fix(m):
+    t = m.group(1)
+    if t in ids: return m.group(0)
+    plain = ''.join(c for c in unicodedata.normalize('NFD', t) if unicodedata.category(c) != 'Mn')
+    return f'href="#{plain}"' if plain in ids else m.group(0)
+body = re.sub(r'href="#([^"]+)"', fix, body)
 # Tabelas dentro de um contêiner que rola no celular
 body = body.replace('<table>', '<div class="tw"><table>').replace('</table>', '</table></div>')
 # Sumário lateral: só os h2

@@ -225,7 +225,7 @@ document.addEventListener('submit', async e => {
         } else {
             const data = await authPost('invite', { email: form.elements.email.value });
             form.reset(); closeModal(true);
-            if (data.link) inviteLinkModal(data.link); else toast(data.message);
+            if (data.link) { inviteLinkModal(data.link); if (data.mailError) toast(data.message); } else toast(data.message);
             void loadSalons();
         }
     }

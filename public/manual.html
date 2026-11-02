@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manual · Hanne</title><meta name="description" content="Manual completo do Hanne: atendimentos pelo WhatsApp, automação, orçamentos, tarefas e estoque.">
+<link rel="icon" href="/favicon.svg">
+<style>
+:root{--bg:#f6f4fb;--card:#fff;--ink:#1d1830;--muted:#625b78;--line:#e4dff0;--accent:#6d4cc2;--accent-soft:#efe9fb;--tip:#e8f6ef;--tipc:#14684a;--warn:#fff3e0;--warnc:#8a4b00;--sum:#efe9fb;--code:#f0ecf8}
+@media(prefers-color-scheme:dark){:root{--bg:#0f0d17;--card:#171424;--ink:#f1eefb;--muted:#a9a2c2;--line:#2a2540;--accent:#a68cf2;--accent-soft:#251f3b;--tip:#10261e;--tipc:#7fe0b6;--warn:#2b2113;--warnc:#f4cf8a;--sum:#251f3b;--code:#211c33}}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+header.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:12px clamp(16px,4vw,40px);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.logo{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#8a63e6,#5b3fb0);color:#fff;font:italic 700 20px Georgia,serif}
+.brand{font-weight:700;letter-spacing:-.01em}.brand small{display:block;font-weight:500;color:var(--muted);font-size:12px;line-height:1.1}
+header.top a.back{margin-left:auto;color:var(--accent);text-decoration:none;font-weight:600;font-size:14px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+.hero{padding:clamp(28px,6vw,64px) clamp(16px,4vw,40px) 12px;max-width:1120px;margin:0 auto}
+.hero .kicker{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:5px 12px;border-radius:999px}
+.hero h1{font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 12px;letter-spacing:-.03em}.hero h1 em{font-family:Georgia,serif;color:var(--accent)}
+.hero p{max-width:680px;color:var(--muted);font-size:18px;margin:0}
+.wrap{display:grid;grid-template-columns:240px minmax(0,1fr);gap:clamp(20px,4vw,56px);max-width:1120px;margin:0 auto;padding:24px clamp(16px,4vw,40px) 80px}
+nav.side{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:2px;max-height:calc(100vh - 110px);overflow:auto;padding-right:6px}
+nav.side a{color:var(--muted);text-decoration:none;font-size:14px;padding:7px 12px;border-radius:10px;line-height:1.35}nav.side a:hover{background:var(--accent-soft);color:var(--accent)}
+nav.side a.on{background:var(--accent-soft);color:var(--accent);font-weight:650}
+main{min-width:0}
+main h2{font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:56px 0 14px;padding-top:30px;border-top:1px solid var(--line);line-height:1.2}
+main h2:first-of-type{margin-top:8px;border-top:0;padding-top:0}
+main h3{font-size:20px;margin:34px 0 8px;letter-spacing:-.01em}
+main p,main li{max-width:72ch}main ul,main ol{padding-left:1.3em}main li{margin:5px 0}
+main a{color:var(--accent);text-underline-offset:3px}main hr{display:none}
+main code{background:var(--code);padding:2px 7px;border-radius:7px;font:600 .88em ui-monospace,SFMono-Regular,Menlo,monospace}
+.tw{overflow-x:auto;margin:16px 0 22px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:15px}th,td{text-align:left;padding:11px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--accent-soft);color:var(--accent);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase}tr:last-child td{border-bottom:0}td:first-child{font-weight:600}
+.callout{margin:20px 0;padding:14px 18px;border-radius:14px;border:1px solid var(--line);background:var(--card);max-width:72ch}.callout p{margin:0}
+.callout.tip{background:var(--tip);border-color:transparent;color:var(--tipc)}.callout.warn{background:var(--warn);border-color:transparent;color:var(--warnc)}.callout.sum{background:var(--sum);border-color:transparent;font-size:17px}
+.callout strong{font-weight:750}
+footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:var(--muted);font-size:13px}
+@media(max-width:860px){.wrap{grid-template-columns:minmax(0,1fr)}nav.side{position:static;flex-direction:row;overflow-x:auto;max-height:none;padding:0 0 10px;margin:0 -4px;gap:6px}nav.side a{white-space:nowrap;border:1px solid var(--line);background:var(--card)}}
+@media print{header.top,nav.side{display:none}.wrap{display:block}body{background:#fff;color:#000}main h2{break-after:avoid}.tw{overflow:visible}}
+</style></head><body>
+<header class="top"><span class="logo" aria-hidden="true">h</span><span class="brand">hanne.<small>Manual</small></span><a class="back" href="/">← Voltar ao sistema</a></header>
+<section class="hero"><span class="kicker">Manual completo</span><h1>Seu ateliê, <em>em dia.</em></h1><p>Guia completo para o dia a dia do ateliê: atender pelo WhatsApp, responder sozinho o que se repete, montar orçamentos, lembrar tarefas e cuidar do estoque.</p></section>
+<div class="wrap"><nav class="side" aria-label="Seções do manual"><a href="#1-primeiros-passos">1. Primeiros passos</a><a href="#2-visao-geral">2. Visão geral</a><a href="#3-conectar-o-whatsapp">3. Conectar o WhatsApp</a><a href="#4-atendimentos">4. Atendimentos</a><a href="#5-automacao">5. Automação</a><a href="#6-orcamentos">6. Orçamentos</a><a href="#7-tarefas">7. Tarefas</a><a href="#8-estoque">8. Estoque</a><a href="#9-servicos">9. Serviços</a><a href="#10-configuracoes">10. Configurações</a><a href="#11-excluir-registros">11. Excluir registros</a><a href="#12-dicas-de-uso">12. Dicas de uso</a><a href="#13-problemas-comuns">13. Problemas comuns</a><a href="#14-glossario">14. Glossário</a></nav><main>
+
+<aside class="callout sum">
+<p><strong>Em uma frase:</strong> o Hanne junta as conversas do seu WhatsApp, mostra o que cada cliente quer (com prioridade) e deixa tudo pronto para você responder, orçar e acompanhar. Nada é enviado à cliente sem você tocar em enviar, exceto as mensagens automáticas que você mesma ligar.</p>
+</aside>
+
+<hr />
+<h2 id="1-primeiros-passos">1. Primeiros passos</h2>
+<h3 id="entrar">Entrar</h3>
+<p>Abra o endereço do ateliê no navegador, digite o <strong>e-mail</strong> e a <strong>senha</strong>. No primeiro acesso, use o link recebido por e-mail (ou o código de configuração) para criar sua senha. A senha precisa ter pelo menos 12 caracteres.</p>
+<h3 id="conhecer-a-tela">Conhecer a tela</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Onde</th>
+<th>O que tem</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu lateral</strong> (no celular: barra de baixo e botão ☰)</td>
+<td>Visão geral, Atendimentos, Orçamentos, Tarefas, Estoque, Serviços, Automação, Configurações e Ajuda.</td>
+</tr>
+<tr>
+<td><strong>Busca</strong> (topo, atalho <code>Ctrl + K</code> ou <code>⌘ K</code>)</td>
+<td>Encontra conversas, orçamentos, tarefas, serviços e produtos de uma vez.</td>
+</tr>
+<tr>
+<td><strong>Claro / Escuro</strong> (topo)</td>
+<td>Troca o tema. A escolha fica salva neste aparelho.</td>
+</tr>
+<tr>
+<td><strong>Sino</strong> (topo)</td>
+<td>Junta os alertas que pedem atenção.</td>
+</tr>
+<tr>
+<td><strong>Modo de foco</strong> (menu lateral)</td>
+<td>Esconde distrações. As prioridades continuam visíveis.</td>
+</tr>
+<tr>
+<td><strong>Como usar esta tela</strong> (abaixo do título de cada página)</td>
+<td>Resumo curto do que a tela faz.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="usar-no-celular">Usar no celular</h3>
+<p>O Hanne funciona no navegador do celular. Na barra de baixo ficam os atalhos principais; o botão <strong>Mais</strong> abre o resto. Em Atendimentos, tocar numa conversa abre a conversa em tela cheia, e a seta ← volta para a lista.</p>
+<aside class="callout tip">
+<p><strong>Dica:</strong> adicione o site à tela inicial do celular pelo menu do navegador para abrir com um toque.</p>
+</aside>
+<h3 id="salvamento">Salvamento</h3>
+<p>Orçamentos, tarefas, estoque e serviços são salvos no servidor quando você confirma. Se não conseguir salvar, o sistema avisa e mantém o que você digitou na tela para você tentar de novo; confira o indicador de sincronização antes de sair. As conversas do WhatsApp ficam no servidor e continuam chegando mesmo com o site fechado.</p>
+<hr />
+<h2 id="2-visao-geral">2. Visão geral</h2>
+<p>A primeira tela mostra o que merece atenção hoje:</p>
+<ul>
+<li><strong>Atendimentos pendentes:</strong> quantas conversas do WhatsApp ainda não foram resolvidas. Toque para abrir a caixa de conversas.</li>
+<li><strong>Orçamentos em andamento:</strong> os que faltam informações ou estão em avaliação.</li>
+<li><strong>Tarefas para hoje</strong> e <strong>atrasadas.</strong></li>
+<li><strong>Estoque baixo:</strong> produtos com saldo igual ou abaixo do mínimo.</li>
+</ul>
+<p>O atalho <strong>Novo orçamento</strong> e <strong>Nova tarefa</strong> fica no topo da tela.</p>
+<hr />
+<h2 id="3-conectar-o-whatsapp">3. Conectar o WhatsApp</h2>
+<p>O Hanne usa o número do seu <strong>WhatsApp Business</strong> por meio de um pequeno programa chamado <strong>conector</strong>, que fica ligado 24 horas (em um servidor gratuito da Oracle ou no computador do ateliê) e conversa com o site. A instalação do conector é feita uma única vez; o passo a passo está em guia de instalação do conector.</p>
+<h3 id="primeira-conexao">Primeira conexão</h3>
+<ol>
+<li>Instale o conector e anote a <strong>chave do conector</strong> (letras, números, <code>-</code> ou <code>_</code>; 32 a 160 caracteres).</li>
+<li>No site: <strong>Atendimentos → Conectar por QR Code</strong>.</li>
+<li>Cole a chave, marque a confirmação e toque em <strong>Preparar QR Code</strong>.</li>
+<li>Em até um minuto aparece o QR Code. No celular: <strong>WhatsApp Business → Aparelhos conectados → Conectar aparelho</strong> e leia o código.</li>
+<li>Quando o status mudar para <strong>WhatsApp conectado</strong>, já pode atender.</li>
+</ol>
+<aside class="callout warn">
+<p><strong>Importante:</strong> o QR Code é temporário e privado. Se expirar, toque em <strong>Gerar novo QR Code</strong>.</p>
+</aside>
+<h3 id="reconectar-depois-sem-colar-a-chave-de-novo">Reconectar depois (sem colar a chave de novo)</h3>
+<p>A chave fica <strong>guardada com segurança (cifrada)</strong> no sistema. Se você tocar em <strong>Desconectar</strong> e quiser ligar de novo:</p>
+<ol>
+<li>Toque em <strong>Reconectar</strong> (ou <strong>Reconectar com a chave guardada</strong>).</li>
+<li>Leia o novo QR Code no celular.</li>
+</ol>
+<p>Você só cola a chave outra vez se reinstalar o conector e ele ganhar uma chave nova: nesse caso use <strong>Usar outra chave</strong>.</p>
+<aside class="callout warn">
+<p><strong>Atenção:</strong> desconectar encerra a sessão do aparelho no conector, mas <strong>não apaga</strong> as conversas já recebidas nem sai do WhatsApp Business do celular.</p>
+</aside>
+<h3 id="mesmo-numero">Mesmo número</h3>
+<p>O sistema vincula o primeiro número lido. Se alguém ler o QR com outro número, a conexão avisa e pede para você usar o número já vinculado (ou desconectar para trocar).</p>
+<hr />
+<h2 id="4-atendimentos">4. Atendimentos</h2>
+<p>Aqui ficam as conversas reais do número conectado, com a aparência do próprio WhatsApp. A tela se atualiza sozinha: a nova mensagem aparece em poucos segundos, sem precisar recarregar.</p>
+<h3 id="41-a-lista-de-conversas">4.1 A lista de conversas</h3>
+<p>Cada linha mostra:</p>
+<ul>
+<li><strong>Foto/iniciais</strong> da cliente e o <strong>nome</strong> (o nome salvo no seu celular; se não houver, o nome do perfil do WhatsApp; se também não houver, o número).</li>
+<li>A <strong>prévia</strong> da última mensagem, com as marcas de entrega nas suas respostas (✓ enviada, ✓✓ entregue, ✓✓ azul lida).</li>
+<li>A <strong>hora</strong> (hoje), "Ontem", o dia da semana ou a data.</li>
+<li>Uma <strong>bolinha verde</strong> com o número de mensagens não lidas.</li>
+<li>O <strong>assunto</strong> (etiqueta colorida) e, quando for o caso, <strong>Prioridade alta</strong>.</li>
+<li>O resumo do que a cliente quer (a "solicitação"), escrito pela IA.</li>
+</ul>
+<p><strong>Filtros de situação:</strong> Pendentes, Não lidas, Todas e Resolvidas.</p>
+<p><strong>Assuntos:</strong> logo abaixo ficam botões com cada assunto e a quantidade de conversas. Toque num assunto para ver só aquele. <strong>Separar por assunto</strong> agrupa a lista em blocos coloridos, na ordem definida em <a href="#53-assuntos-e-prioridade">Automação → Assuntos</a>.</p>
+<p><strong>Busca:</strong> procure por nome, número ou trecho de mensagem.</p>
+<h3 id="42-assunto-e-prioridade">4.2 Assunto e prioridade</h3>
+<p>A IA lê cada mensagem nova, escolhe o <strong>assunto</strong> e dá uma <strong>prioridade</strong>:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Prioridade</th>
+<th>Como aparece</th>
+<th>Quando</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Alta</strong></td>
+<td>Etiqueta "Prioridade alta" e destaque</td>
+<td>Segurança, Agendamento urgente (até 3 dias depois da mensagem), Pagamento pendente e Pagamento realizado.</td>
+</tr>
+<tr>
+<td><strong>Normal</strong></td>
+<td>Sem etiqueta</td>
+<td>Agendamento comum e os assuntos definidos como Normal.</td>
+</tr>
+<tr>
+<td><strong>Baixa</strong></td>
+<td>Sem destaque</td>
+<td>Spam ou suspeita.</td>
+</tr>
+<tr>
+<td><strong>A IA decide</strong></td>
+<td>Alta, normal ou baixa conforme o resumo da cliente</td>
+<td>Os demais assuntos (orçamento, pós-procedimento, reclamação etc.).</td>
+</tr>
+</tbody>
+</table></div>
+<p>Enquanto a cliente só cumprimentou ("oi", "bom dia"), a conversa fica como <strong>Ainda não disse o que precisa</strong>. A prioridade de cada assunto você ajusta em <a href="#53-assuntos-e-prioridade">Automação</a>.</p>
+<aside class="callout note">
+<p><strong>Segurança:</strong> quando o assunto é Segurança (reação alérgica, ardência, queimadura, dor), aparece um aviso vermelho: avalie pessoalmente antes de orientar a cliente.</p>
+</aside>
+<p><strong>Trocar o assunto à mão:</strong> no seletor <strong>Assunto</strong> no topo da conversa (no celular, no menu ⋮). Escolha um assunto, ou <strong>Assunto pela IA</strong> para voltar ao automático. Quando você escolhe, a IA não muda mais aquela conversa.</p>
+<h3 id="43-dentro-da-conversa">4.3 Dentro da conversa</h3>
+<p>Na parte de cima fica a <strong>faixa de solicitação</strong>: o que a cliente quer agora, o assunto e avisos (por exemplo, "Aviso de ocupada enviado às 10:32"). A IA atualiza a cada mensagem nova.</p>
+<p>Abaixo, as <strong>Ferramentas</strong> (toque para abrir):</p>
+<ul>
+<li><strong>Resumo da conversa:</strong> a IA resume o que a cliente pediu e o que falta responder.</li>
+<li><strong>Sugestão de resposta:</strong> a IA escreve um rascunho no campo de resposta. Você revisa, edita e envia.</li>
+<li><strong>Orçamentos e tarefas:</strong> mostra o que já foi criado a partir da conversa. <strong>Criar orçamento</strong> e <strong>Criar tarefa</strong> levam o nome, o telefone e a origem já preenchidos.</li>
+</ul>
+<p>No topo à direita: <strong>Resolver / Reabrir</strong> e o menu <strong>⋮</strong> (Criar orçamento, Criar tarefa, Excluir conversa).</p>
+<aside class="callout note">
+<p><strong>Resolver</strong> só organiza a sua lista. Uma nova mensagem da cliente reabre a pendência automaticamente.</p>
+</aside>
+<h3 id="44-responder">4.4 Responder</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Quero</th>
+<th>Como fazer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enviar texto</td>
+<td>Escreva e aperte <strong>Enter</strong> (computador) ou o botão de enviar. <strong>Shift + Enter</strong> quebra a linha. No celular, Enter quebra a linha e o botão envia.</td>
+</tr>
+<tr>
+<td>Usar emoji</td>
+<td>Botão 😊 à esquerda do campo.</td>
+</tr>
+<tr>
+<td>Enviar foto</td>
+<td>Clipe 📎 → <strong>Foto</strong> (JPEG ou PNG, até 5 MB). Também dá para colar ou arrastar a imagem para a conversa. A legenda é o texto do campo.</td>
+</tr>
+<tr>
+<td>Enviar áudio gravado</td>
+<td>Botão do microfone: grava na hora (precisa permitir o microfone). Toque em enviar para mandar ou na lixeira para descartar.</td>
+</tr>
+<tr>
+<td>Enviar arquivo de áudio</td>
+<td>Clipe 📎 → <strong>Arquivo de áudio</strong> (MP3, M4A, AAC, AMR ou OGG, até 16 MB). Áudio vai sem legenda.</td>
+</tr>
+<tr>
+<td>Responder citando</td>
+<td>Passe o mouse (ou toque) numa mensagem e use a seta de <strong>Responder</strong>. A mensagem citada aparece acima do campo.</td>
+</tr>
+<tr>
+<td>Copiar o texto</td>
+<td>Botão de copiar na mensagem.</td>
+</tr>
+</tbody>
+</table></div>
+<p>As mensagens que saem mostram o relógio enquanto aguardam o conector. Se o conector estiver fora do ar, a mensagem <strong>fica na fila</strong> e sai sozinha quando ele voltar.</p>
+<aside class="callout warn">
+<p><strong>Atenção:</strong> se aparecer "Envio sem confirmação", não reenvie por outro lugar antes de conferir no celular. Use <strong>Já conferi no celular</strong> para liberar o campo.</p>
+</aside>
+<h3 id="45-nota-interna">4.5 Nota interna</h3>
+<p>É o seu caderninho dentro da conversa: um registro do que você está fazendo, <strong>que a cliente nunca recebe</strong>.</p>
+<ol>
+<li>Acima do campo de resposta, toque em <strong>Nota interna</strong> (o campo fica amarelo).</li>
+<li>Escreva e aperte <strong>Enter</strong> ou o botão de salvar.</li>
+<li>A nota aparece como um <strong>balão amarelo</strong> com "Nota interna · só você vê".</li>
+<li>Para voltar a escrever para a cliente, toque em <strong>Mensagem</strong>.</li>
+</ol>
+<p>Exemplos: "Cliente prefere sábado de manhã", "Pediu desconto, ver com a dona", "Ficou de mandar foto do cabelo". As notas entram no resumo da IA, para ela saber o contexto.</p>
+<h3 id="46-nova-conversa">4.6 Nova conversa</h3>
+<p>Para falar com alguém que ainda não escreveu:</p>
+<ol>
+<li>Toque em <strong>Nova conversa</strong> (topo da página).</li>
+<li>Informe o <strong>nome</strong> (opcional) e o <strong>telefone com DDD</strong>.</li>
+<li>Escreva a mensagem e toque em <strong>Enviar pelo WhatsApp</strong>.</li>
+</ol>
+<p>A conversa nasce na lista e a resposta da cliente chega nela. Ela <strong>não</strong> vira pendência até a cliente responder.</p>
+<h3 id="47-estou-ocupada">4.7 Estou ocupada</h3>
+<p>No topo da caixa fica o seletor <strong>Estou ocupada</strong>. Ligado, quem disser o que precisa recebe o aviso de que você responde assim que possível. O texto e o tempo de espera ficam em <a href="#5-automação">Automação</a>.</p>
+<h3 id="48-excluir-uma-conversa-ou-mensagem">4.8 Excluir uma conversa ou mensagem</h3>
+<p>No menu <strong>⋮</strong>, <strong>Excluir conversa</strong>, ou o ícone de lixeira em uma mensagem. Isso apaga o conteúdo <strong>só do sistema</strong>. Não apaga do celular da cliente nem do WhatsApp. Uma nova mensagem poderá criar a conversa de novo.</p>
+<hr />
+<h2 id="5-automacao">5. Automação</h2>
+<p>No menu <strong>Automação</strong> você define o que o sistema responde sozinho e como as conversas são separadas.</p>
+<h3 id="51-mensagens-automaticas">5.1 Mensagens automáticas</h3>
+<p>Cada automação é um <strong>cartão</strong> com o nome, o gatilho, o tempo de espera, a mensagem e um <strong>seletor Ligada/Desligada</strong>. Ligar ou desligar vale na hora. Toque em <strong>Editar</strong> para mudar o que quiser.</p>
+<p><strong>Já vêm prontas:</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Automação</th>
+<th>Gatilho</th>
+<th>Estado inicial</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Boas-vindas</strong></td>
+<td>A cliente só cumprimenta</td>
+<td>Ligada (espera 2 minutos)</td>
+</tr>
+<tr>
+<td><strong>Estou ocupada</strong></td>
+<td>A cliente diz o que precisa</td>
+<td>Desligada</td>
+</tr>
+<tr>
+<td><strong>Fora do horário</strong></td>
+<td>Chega fora do horário de atendimento</td>
+<td>Desligada</td>
+</tr>
+<tr>
+<td><strong>Pagamento recebido</strong></td>
+<td>O assunto é Pagamento realizado</td>
+<td>Desligada</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="52-criar-uma-automacao-nova">5.2 Criar uma automação nova</h3>
+<ol>
+<li>Toque em <strong>Nova automação</strong>.</li>
+<li>Escolha um <strong>modelo</strong> pronto (Endereço, Boas-vindas a contato novo, Formas de pagamento, Pagamento pendente) ou <strong>Em branco</strong>.</li>
+<li>Ajuste o <strong>nome</strong>, o <strong>gatilho</strong> (Quando), o <strong>tempo de espera</strong> e a <strong>mensagem</strong>. A <strong>prévia</strong> mostra como a cliente vai ver.</li>
+<li>Toque em <strong>Criar automação</strong>. Ela já nasce ligada.</li>
+</ol>
+<p><strong>Gatilhos disponíveis:</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Gatilho</th>
+<th>Dispara quando</th>
+<th>Campo extra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A cliente só cumprimenta</td>
+<td>Mandou só "oi", "bom dia", "tudo bem?" e ainda não disse o que quer</td>
+<td>—</td>
+</tr>
+<tr>
+<td>A cliente diz o que precisa</td>
+<td>A IA entendeu o pedido</td>
+<td>—</td>
+</tr>
+<tr>
+<td>A conversa é de um assunto</td>
+<td>A conversa entra num assunto da lista</td>
+<td>Qual assunto</td>
+</tr>
+<tr>
+<td>A mensagem tem certas palavras</td>
+<td>A mensagem contém uma das palavras</td>
+<td>Palavras separadas por vírgula (sem diferença de maiúsculas ou acentos)</td>
+</tr>
+<tr>
+<td>Chega fora do horário</td>
+<td>A mensagem chega fora dos dias e horas de atendimento</td>
+<td>Dias e horário (início e fim)</td>
+</tr>
+<tr>
+<td>Contato novo</td>
+<td>É a primeira mensagem de alguém que nunca escreveu</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Na mensagem</strong>, use <code>{nome}</code> (botão <strong>+ Nome da cliente</strong>) para o primeiro nome. Quando não houver nome, ele some e a frase continua natural.</p>
+<p><strong>Tempo de espera:</strong> de "na hora" até 30 minutos, contado a partir da última mensagem da cliente. Isso evita responder no meio de quem ainda está digitando.</p>
+<h3 id="53-assuntos-e-prioridade">5.3 Assuntos e prioridade</h3>
+<p>Na parte de baixo ficam os <strong>assuntos</strong> que a IA usa para separar as conversas. Cada linha tem:</p>
+<ul>
+<li><strong>Nome</strong> do assunto.</li>
+<li><strong>Prioridade:</strong> Alta, Normal, Baixa ou <strong>A IA decide</strong>.</li>
+<li><strong>Cor.</strong></li>
+<li><strong>Quando usar:</strong> uma frase que ajuda a IA a escolher.</li>
+<li>Setas <strong>↑ ↓</strong> para mudar a ordem (é a ordem dos grupos na lista) e <strong>✕</strong> para remover.</li>
+</ul>
+<p><strong>Assuntos que já vêm prontos:</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Assunto</th>
+<th>Prioridade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Segurança</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>Agendamento urgente (até 3 dias depois da mensagem)</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>Agendamento</td>
+<td>Normal</td>
+</tr>
+<tr>
+<td>Pagamento pendente</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>Pagamento realizado</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>Pós-procedimento</td>
+<td>A IA decide</td>
+</tr>
+<tr>
+<td>Orçamento</td>
+<td>A IA decide</td>
+</tr>
+<tr>
+<td>Informações gerais</td>
+<td>A IA decide</td>
+</tr>
+<tr>
+<td>Reclamação</td>
+<td>A IA decide</td>
+</tr>
+<tr>
+<td>Exige esclarecimentos</td>
+<td>A IA decide</td>
+</tr>
+<tr>
+<td>Spam ou suspeita</td>
+<td>Baixa</td>
+</tr>
+</tbody>
+</table></div>
+<p>Use <strong>Adicionar assunto</strong> para criar os seus. Toque em <strong>Salvar assuntos</strong> para guardar (o botão só habilita quando há mudança). <strong>Restaurar a lista padrão</strong> volta ao que está na tabela acima e pede confirmação.</p>
+<p>O seletor <strong>IA ligada/desligada</strong> controla se a IA separa as conversas. Desligada, as conversas ficam sem assunto automático (você ainda pode escolher à mão).</p>
+<h3 id="54-regras-de-envio-para-nao-incomodar-a-cliente">5.4 Regras de envio (para não incomodar a cliente)</h3>
+<ul>
+<li>Cada automação sai <strong>no máximo uma vez por atendimento</strong>. Um atendimento novo começa quando a cliente volta a escrever depois de <strong>8 horas</strong> sem conversa.</li>
+<li>Se <strong>você já respondeu</strong> (pelo sistema ou pelo celular), nenhuma automação é enviada naquele atendimento.</li>
+<li>Depois que uma automação sai, a próxima só pode sair quando a cliente escrever de novo.</li>
+<li>Conversas classificadas como <strong>spam</strong> não recebem automação.</li>
+<li>As mensagens automáticas aparecem na conversa com a etiqueta <strong>Automática</strong> e o nome da regra.</li>
+<li>As automações saem <strong>mesmo com o site fechado</strong>, desde que o conector esteja ligado.</li>
+</ul>
+<aside class="callout tip">
+<p><strong>Dica:</strong> comece com <strong>Boas-vindas</strong> e <strong>Estou ocupada</strong>. Depois crie uma de <strong>Endereço</strong> com palavras-chave: ela responde sozinha a quem pergunta "onde fica?".</p>
+</aside>
+<hr />
+<h2 id="6-orcamentos">6. Orçamentos</h2>
+<p>Cada orçamento guarda <strong>contato</strong>, <strong>serviço</strong>, <strong>etapa</strong>, <strong>valor</strong>, <strong>contexto</strong> (histórico e o que falta saber), <strong>perguntas para a cliente</strong> e até <strong>3 fotos</strong>.</p>
+<p><strong>Etapas:</strong> Faltam informações → Em avaliação → Avaliado → Encerrado. Para marcar como <strong>Avaliado</strong>, defina o valor.</p>
+<p>Como criar:</p>
+<ul>
+<li>Pelo botão <strong>Novo orçamento</strong> (Visão geral ou Orçamentos), ou</li>
+<li>Dentro de uma conversa, com <strong>Criar orçamento</strong>: o contato e a origem já vêm preenchidos.</li>
+</ul>
+<p>Ferramentas na ficha:</p>
+<ul>
+<li><strong>Perguntas pelo WhatsApp:</strong> abre a mensagem pronta com as perguntas para você revisar e enviar.</li>
+<li><strong>Copiar perguntas:</strong> copia o texto.</li>
+<li><strong>Criar tarefa:</strong> gera um lembrete ligado ao orçamento.</li>
+<li><strong>Abrir conversa:</strong> volta para a conversa de origem.</li>
+</ul>
+<p>Use os filtros no topo (Todos, Em andamento, Faltam informações etc.) para achar rápido. <strong>Exportar</strong> gera uma planilha.</p>
+<aside class="callout note">
+<p>A definição do procedimento e do preço é sempre sua. As fotos são organizadas sem análise visual por IA.</p>
+</aside>
+<hr />
+<h2 id="7-tarefas">7. Tarefas</h2>
+<p>Lembretes com <strong>título</strong>, <strong>prazo</strong>, <strong>prioridade</strong> (Alta, Média, Baixa) e <strong>área</strong>.</p>
+<ul>
+<li>Toque no <strong>círculo</strong> para concluir. A tarefa vai para o filtro <strong>Concluídas</strong>.</li>
+<li>Filtros: <strong>Pendentes</strong>, <strong>Atrasadas</strong>, <strong>Concluídas</strong> e <strong>Todas</strong>.</li>
+<li>Prazo vencido e não concluída aparece como <strong>atraso</strong>.</li>
+<li>A tarefa pode guardar o <strong>contato</strong>, o <strong>orçamento</strong> e a <strong>conversa</strong> de origem.</li>
+</ul>
+<p>Crie pelo botão <strong>Nova tarefa</strong>, ou dentro de uma conversa com <strong>Criar tarefa</strong> ("Responder Maria" já vem preenchido).</p>
+<hr />
+<h2 id="8-estoque">8. Estoque</h2>
+<p>Controle simples do que você tem, usa e precisa repor. Tudo é lançado à mão, quando acontece.</p>
+<ol>
+<li><strong>Cadastrar produto:</strong> nome, marca, unidade (<strong>g</strong>, <strong>ml</strong> ou <strong>un</strong>), tamanho da embalagem, preço da embalagem (opcional), quantidade que você tem hoje e <strong>estoque mínimo</strong>.</li>
+<li><strong>Entrada:</strong> quando chega produto. O valor pago é opcional; com ele o <strong>custo médio</strong> é atualizado.</li>
+<li><strong>Uso:</strong> quando você usa o produto. <strong>Perda:</strong> quando algo se perde ou estraga. Ambos reduzem o saldo.</li>
+<li><strong>Conferir custo:</strong> informe o preço atual quando o custo aparecer como <strong>a conferir</strong>.</li>
+</ol>
+<p><strong>Custo a conferir</strong> significa que falta informação de custo: não é tratado como custo zero.</p>
+<p>Corrigir um movimento recalcula o saldo e o custo das saídas seguintes. Produtos com saldo <strong>igual ou abaixo do mínimo</strong> aparecem como <strong>Repor</strong> e na Visão geral.</p>
+<hr />
+<h2 id="9-servicos">9. Serviços</h2>
+<p>O catálogo do ateliê: <strong>nome</strong>, <strong>descrição</strong>, <strong>duração</strong>, <strong>produtos usados</strong> e <strong>orientações antes e depois</strong> do procedimento.</p>
+<ul>
+<li>Os serviços aparecem na escolha do orçamento.</li>
+<li>As orientações ajudam a responder às clientes.</li>
+<li>Se um serviço for excluído, os orçamentos antigos guardam o nome dele.</li>
+</ul>
+<hr />
+<h2 id="10-configuracoes">10. Configurações</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Seção</th>
+<th>O que faz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Aparência</strong></td>
+<td>Claro ou escuro suave, salvo neste aparelho.</td>
+</tr>
+<tr>
+<td><strong>Seu ateliê</strong></td>
+<td>Como prefere ser chamada e o prazo de resposta de referência (em minutos).</td>
+</tr>
+<tr>
+<td><strong>Sua conta</strong></td>
+<td>Trocar e-mail (pede a senha atual) e trocar senha (os outros aparelhos precisam entrar de novo). <strong>Sair da conta.</strong></td>
+</tr>
+<tr>
+<td><strong>Salões</strong></td>
+<td>Para a titular: convidar outro salão. Cada salão tem login e dados próprios, e nenhum vê os dados do outro. O convite vale 7 dias e só pode ser usado uma vez.</td>
+</tr>
+<tr>
+<td><strong>Conexões e acesso</strong></td>
+<td>Estado da sincronização, do WhatsApp e da inteligência artificial.</td>
+</tr>
+<tr>
+<td><strong>Exportar e cópia</strong></td>
+<td><strong>Exportar dados</strong> (CSV ou PDF) e <strong>Cópia completa JSON</strong> com todos os registros.</td>
+</tr>
+<tr>
+<td><strong>Histórico de ações</strong></td>
+<td>As alterações confirmadas, com data e quem fez.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="inteligencia-artificial">Inteligência artificial</h3>
+<p>A IA classifica conversas, resume e sugere respostas. Ela <strong>só sugere</strong>: nada é enviado sem você. O plano gratuito tem um limite diário; quando acaba, aparece o aviso e a IA volta no dia seguinte. Enquanto isso, o resto do sistema segue funcionando (você pode escolher o assunto à mão).</p>
+<hr />
+<h2 id="11-excluir-registros">11. Excluir registros</h2>
+<p>Use <strong>Excluir registro</strong> no topo de cada tela, ou o botão dentro da ficha. Antes de apagar, o sistema mostra <strong>o que será apagado</strong> e <strong>o que só perde o vínculo</strong>, e pede a <strong>senha da conta</strong>. A exclusão é definitiva.</p>
+<hr />
+<h2 id="12-dicas-de-uso">12. Dicas de uso</h2>
+<ul>
+<li><strong>Tocar fora fecha:</strong> menus, o painel de emojis, a ajuda da tela e as janelas fecham com <strong>um toque fora</strong> (ou <strong>Esc</strong> no computador).</li>
+<li><strong>Confirmação ao sair:</strong> se você escreveu algo e tentar fechar ou sair, o sistema pergunta se quer <strong>continuar editando</strong> ou <strong>descartar</strong>. Isso vale para janelas com campos preenchidos, para a página Automação com alterações e para o texto de uma nova conversa.</li>
+<li><strong>Rascunhos:</strong> o texto que você começou a escrever numa conversa fica guardado enquanto a página estiver aberta, mesmo trocando de conversa. Ele não é salvo no aparelho depois que você fecha a aba.</li>
+<li><strong>Enter envia</strong> no computador; <strong>Shift + Enter</strong> quebra a linha.</li>
+<li><strong>Busca global</strong> com <code>Ctrl + K</code>.</li>
+<li><strong>Atualizar</strong> (botão na caixa de conversas) confere a conexão e as conversas na hora.</li>
+</ul>
+<hr />
+<h2 id="13-problemas-comuns">13. Problemas comuns</h2>
+<h3 id="a-mensagem-da-cliente-nao-chegou">A mensagem da cliente não chegou</h3>
+<ol>
+<li>Veja o status no topo: <strong>WhatsApp conectado</strong> (verde) ou <strong>Conectando…</strong>.</li>
+<li>Se aparecer "O conector do computador não se comunica", confira se o servidor do conector está ligado e com internet.</li>
+<li>Toque em <strong>Atualizar</strong>.</li>
+</ol>
+<h3 id="aparece-aguardando-o-conector-e-o-qr-nao-vem">Aparece "Aguardando o conector" e o QR não vem</h3>
+<p>Espere alguns minutos depois de instalar ou reiniciar o conector. Se continuar, toque em <strong>Gerar novo QR Code</strong> e confira o conector (veja guia de instalação do conector, seção "Se o QR Code não aparecer").</p>
+<h3 id="o-qr-code-expirou">O QR Code expirou</h3>
+<p>Toque em <strong>Gerar novo QR Code</strong> e leia de novo.</p>
+<h3 id="quero-reconectar-e-a-chave-foi-pedida-de-novo">Quero reconectar e a chave foi pedida de novo</h3>
+<p>Depois de <strong>Desconectar</strong>, use <strong>Reconectar</strong> (a chave fica guardada). Se for pedida, é porque o conector foi reinstalado com chave nova ou este é o primeiro cadastro: cole a chave do instalador uma vez.</p>
+<h3 id="os-clientes-veem-um-aviso-de-versao-do-whatsapp">Os clientes veem um aviso de versão do WhatsApp</h3>
+<p>O conector procura sozinho a versão mais recente do WhatsApp e se atualiza uma vez por dia no servidor gratuito. Se o aviso continuar aparecendo para as clientes, reinstale ou reinicie o conector para forçar a atualização e leia o QR Code de novo. Se persistir, anote o texto exato do aviso e envie para o suporte.</p>
+<h3 id="a-mensagem-automatica-nao-saiu">A mensagem automática não saiu</h3>
+<p>Confira:</p>
+<ol>
+<li>A automação está <strong>Ligada</strong>?</li>
+<li>A cliente já tinha uma resposta sua <strong>no mesmo atendimento</strong>?</li>
+<li>Já saiu uma automação nesse atendimento (cada uma sai uma vez)?</li>
+<li>Passou o <strong>tempo de espera</strong> configurado?</li>
+<li>O conector está online?</li>
+</ol>
+<h3 id="a-ia-parou-de-classificar">A IA parou de classificar</h3>
+<p>O limite diário gratuito acabou. Ela volta no dia seguinte (a mensagem informa o horário). Escolha o assunto à mão enquanto isso.</p>
+<h3 id="digitei-uma-nota-e-a-cliente-recebeu">Digitei uma nota e a cliente recebeu?</h3>
+<p>Não. Nota interna nunca é enviada. Ela é identificada pelo balão amarelo e pelo texto "só você vê".</p>
+<hr />
+<h2 id="14-glossario">14. Glossário</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Termo</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Conector</strong></td>
+<td>Programa que mantém o WhatsApp Business ligado ao site, 24 horas.</td>
+</tr>
+<tr>
+<td><strong>Chave do conector</strong></td>
+<td>Senha do conector. Guardada cifrada no sistema; você cola uma vez.</td>
+</tr>
+<tr>
+<td><strong>Atendimento</strong></td>
+<td>Uma sequência de conversa. Um novo começa quando a cliente volta depois de 8 horas.</td>
+</tr>
+<tr>
+<td><strong>Solicitação</strong></td>
+<td>O resumo do que a cliente quer agora, escrito pela IA.</td>
+</tr>
+<tr>
+<td><strong>Assunto</strong></td>
+<td>A categoria da conversa (Pagamento, Agendamento, Segurança…).</td>
+</tr>
+<tr>
+<td><strong>Prioridade</strong></td>
+<td>Alta, normal ou baixa. Define o que olhar primeiro.</td>
+</tr>
+<tr>
+<td><strong>Automação</strong></td>
+<td>Resposta que o sistema envia sozinho quando uma condição acontece.</td>
+</tr>
+<tr>
+<td><strong>Gatilho</strong></td>
+<td>A condição que faz uma automação disparar.</td>
+</tr>
+<tr>
+<td><strong>Nota interna</strong></td>
+<td>Registro dentro da conversa que a cliente não recebe.</td>
+</tr>
+<tr>
+<td><strong>Pendente</strong></td>
+<td>Conversa ainda não resolvida.</td>
+</tr>
+<tr>
+<td><strong>Custo a conferir</strong></td>
+<td>Falta saber o custo de um produto; não conta como zero.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<p><em>Este manual acompanha a versão atual do Hanne. A ajuda curta de cada tela ("Como usar esta tela") traz o essencial no próprio sistema.</em></p></main></div>
+<footer>Este manual acompanha a versão atual do Hanne. Para imprimir ou salvar em PDF, use o menu de impressão do navegador.</footer>
+<script src="/manual.js" defer></script>
+</body></html>

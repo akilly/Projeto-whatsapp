@@ -49,10 +49,17 @@ export function createWhatsAppUI(helpers) {
   }
   const post=(path,body)=>api(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   /** Configuração direta. Nenhum número é registrado ou migrado por este formulário. */
-  function configure() {
+  /** Reconecta usando a chave que já está guardada (cifrada) no sistema: um toque, sem colar nada. */
+  async function reconnect(){
+    try{connection=await api('connection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:'baileys'})});toast('Reconectando com a chave já guardada. O QR Code aparece em instantes.');await refresh();}
+    catch(e){error=e.message;paint();}
+  }
+  function configure(force=false) {
     if(isExample()){toast('Abra os dados reais para configurar o WhatsApp.');return;}
-    const secret=(label,name,help,attributes='')=>`<div class="full wa-secret">${field(label,name,'','password',`required autocomplete="off" aria-describedby="wa-${name}-help" ${attributes}`,true)}${action('Mostrar '+label.toLowerCase(),'reveal','text',`aria-pressed="false" data-label="${esc(label.toLowerCase())}"`)}<p id="wa-${name}-help" class="small muted">${help}</p></div>`;
-    openForm('Conectar WhatsApp por QR Code','wa-connect',`<div class="full wa-onboarding"><span class="eyebrow">Conector Baileys</span><ol class="wa-checklist"><li><strong>1. Preparar uma vez</strong><p>Instale o conector (no computador, com Docker ou no servidor gratuito da Oracle) e cole a chave abaixo. Depois disso, não é necessário repetir esta etapa.</p></li><li><strong>2. Ler o QR Code</strong><p>No celular: WhatsApp Business → Aparelhos conectados → Conectar aparelho.</p></li><li><strong>3. Começar a atender</strong><p>Quando aparecer Conectado, envie uma mensagem de outro telefone e responda aqui.</p></li></ol><p><a class="btn secondary sm" href="/baileys-conector.zip" download>Baixar conector e instruções</a></p><p class="notice">Baileys é independente da Meta. Pode sofrer interrupções ou restrições do WhatsApp. Não há garantia de estabilidade nem de ausência de bloqueios.</p></div>${secret('Chave do conector','bridgeKey','O instalador mostra a chave. Ela fica cifrada no sistema; não a envie pelo chat.','minlength="32" maxlength="160" pattern="[a-zA-Z0-9_-]{32,160}"')}<label class="row full small"><input type="checkbox" required>Este conector é exclusivo desta conta e estou ciente de que o Baileys não é uma integração oficial.</label>`,'Preparar QR Code','',true);
+    if(!force&&connection?.provider==='baileys'&&connection.hasSavedKey&&connection.status==='disconnected'){void reconnect();return;}
+    const hasKey=connection?.provider==='baileys'&&connection.hasSavedKey;
+    const secret=(label,name,help,attributes='')=>`<div class="full wa-secret">${field(label,name,'','password',`${hasKey?'':'required'} autocomplete="off" aria-describedby="wa-${name}-help" ${attributes}`,true)}${action('Mostrar '+label.toLowerCase(),'reveal','text',`aria-pressed="false" data-label="${esc(label.toLowerCase())}"`)}<p id="wa-${name}-help" class="small muted">${help}</p></div>`;
+    openForm('Conectar WhatsApp por QR Code','wa-connect',`<div class="full wa-onboarding"><span class="eyebrow">Conector Baileys</span><ol class="wa-checklist"><li><strong>1. Preparar uma vez</strong><p>Instale o conector (no computador, com Docker ou no servidor gratuito da Oracle) e cole a chave abaixo. Depois disso, não é necessário repetir esta etapa.</p></li><li><strong>2. Ler o QR Code</strong><p>No celular: WhatsApp Business → Aparelhos conectados → Conectar aparelho.</p></li><li><strong>3. Começar a atender</strong><p>Quando aparecer Conectado, envie uma mensagem de outro telefone e responda aqui.</p></li></ol><p><a class="btn secondary sm" href="/baileys-conector.zip" download>Baixar conector e instruções</a></p><p class="notice">Baileys é independente da Meta. Pode sofrer interrupções ou restrições do WhatsApp. Não há garantia de estabilidade nem de ausência de bloqueios.</p></div>${secret('Chave do conector','bridgeKey',hasKey?'Já existe uma chave guardada (cifrada). Deixe em branco para continuar com ela; cole outra só se tiver reinstalado o conector com uma chave nova.':'O instalador mostra a chave. Ela fica cifrada e guardada: você cola uma vez só. Não a envie pelo chat.','minlength="32" maxlength="160" pattern="[a-zA-Z0-9_-]{32,160}"')}<label class="row full small"><input type="checkbox" required>Este conector é exclusivo desta conta e estou ciente de que o Baileys não é uma integração oficial.</label>`,'Preparar QR Code','',true);
   }
   /** O painel mostra etapas observadas, sem simular QR ou mensagem recebida. */
   function setupPanel(){
@@ -116,9 +123,9 @@ export function createWhatsAppUI(helpers) {
     if(!root?.isConnected)return;
     root.querySelector('#wa-session').hidden=!sessionExpired;root.querySelector('#wa-error').hidden=!error;root.querySelector('#wa-error').textContent=error;
     const configured=connection?.provider==='baileys'&&connection.status!=='disconnected'||connection?.provider==='meta'&&connection.credentialsVerified;
-    setHTML(root.querySelector('#wa-status'),connection?`<span class="pill ${connection.connected?'green':'gray'}">${connection.connected?'WhatsApp conectado':configured?'Conectando…':'Desconectado'}</span><span>${connection.phone?esc(connection.phone):''}${connection.provider==='baileys'&&connection.status==='disconnected'?' Use Conectar por QR Code para ligar de novo.':''}</span>${connection.status!=='disconnected'?action('Desconectar','disconnect','text'):''}`:loading?'Consultando conexão…':'');
+    setHTML(root.querySelector('#wa-status'),connection?`<span class="pill ${connection.connected?'green':'gray'}">${connection.connected?'WhatsApp conectado':configured?'Conectando…':'Desconectado'}</span><span>${connection.phone?esc(connection.phone):''}${connection.provider==='baileys'&&connection.status==='disconnected'?' Use Conectar por QR Code para ligar de novo.':''}</span>${connection.status!=='disconnected'?action('Desconectar','disconnect','text'):connection.hasSavedKey?action('Usar outra chave','configure','text','data-force="1"'):''}`:loading?'Consultando conexão…':'');
     setHTML(root.querySelector('#wa-setup-panel'),setupPanel());
-    const configButton=root.querySelector('[data-action="wa-configure"]');configButton.textContent=connection?.provider==='baileys'&&connection.status!=='disconnected'?'Configuração avançada':'Conectar por QR Code';configButton.classList.toggle('primary',!connection?.connected);configButton.classList.toggle('secondary',!!connection?.connected);
+    const configButton=root.querySelector('[data-action="wa-configure"]');configButton.textContent=connection?.provider==='baileys'&&connection.status!=='disconnected'?'Configuração avançada':connection?.hasSavedKey?'Reconectar':'Conectar por QR Code';configButton.classList.toggle('primary',!connection?.connected);configButton.classList.toggle('secondary',!!connection?.connected);
     root.querySelectorAll('[data-action="wa-busy"]').forEach(b=>{const on=String(!!rule('busy')?.enabled)===b.dataset.value;b.setAttribute('aria-pressed',String(on));b.classList.toggle('active',on);b.disabled=!automation;});
     root.querySelector('#wa-pending').textContent=pending===null?'':`${pending} ${pending===1?'pendente':'pendentes'}`;
     root.querySelectorAll('[data-action="wa-filter"]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.value===filter)));
@@ -132,7 +139,7 @@ export function createWhatsAppUI(helpers) {
     if(!t){
       panel.dataset.thread='';
       if(!panel.querySelector('.wz-empty'))panel.innerHTML='<div class="wz-empty"></div>';
-      setHTML(panel.querySelector('.wz-empty'),connection?.connected?(threads.length?`<div class="wz-empty-art">${svg(IC.send)}</div><h3>Selecione uma conversa</h3><p>As pendentes ficam separadas por assunto, com a solicitação de cada cliente em destaque.</p>`:'<h3>Pronto para receber.</h3><p>Envie uma mensagem ao número conectado usando outro celular.</p>'):configured?'<h3>Conectando o WhatsApp…</h3><p>Siga as etapas acima. As conversas aparecem aqui assim que o número estiver conectado.</p>':`<h3>Seu atendimento, no mesmo lugar.</h3><p>Conecte o WhatsApp por QR Code para receber e responder pelo sistema.</p>${action('Configurar conexão','configure','primary')}`);
+      setHTML(panel.querySelector('.wz-empty'),connection?.connected?(threads.length?`<div class="wz-empty-art">${svg(IC.send)}</div><h3>Selecione uma conversa</h3><p>As pendentes ficam separadas por assunto, com a solicitação de cada cliente em destaque.</p>`:'<h3>Pronto para receber.</h3><p>Envie uma mensagem ao número conectado usando outro celular.</p>'):configured?'<h3>Conectando o WhatsApp…</h3><p>Siga as etapas acima. As conversas aparecem aqui assim que o número estiver conectado.</p>':`<h3>Seu atendimento, no mesmo lugar.</h3><p>Conecte o WhatsApp por QR Code para receber e responder pelo sistema.</p>${connection?.hasSavedKey?action('Reconectar com a chave guardada','configure','primary')+action('Usar outra chave','configure','text','data-force="1"'):action('Configurar conexão','configure','primary')}`);
       return;
     }
     if(panel.dataset.thread!==selected){
@@ -295,7 +302,7 @@ export function createWhatsAppUI(helpers) {
     }
     if(name==='create-quote'||name==='create-task'){const t=threads.find(x=>x.id===selected);if(t&&onCreate)onCreate(name==='create-quote'?'quote':'task',{name:t.name,phone:t.peer,threadId:t.id,summary:aiState.get(selected)?.summary||t.ai_request||''});return;}
     if(name==='ai-summary'||name==='ai-reply'){await runAI(name==='ai-summary'?'summary':'reply');return;}
-    if(name==='configure')configure();
+    if(name==='configure')configure(!!button.dataset.force);
     if(name==='automation')openAutomation?.();
     if(name==='busy'){const on=button.dataset.value==='true';if(!rule('busy')||rule('busy').enabled===on)return;const before=automation;automation={...automation,rules:automation.rules.map(r=>r.id==='busy'?{...r,enabled:on}:r)};paint();try{automation=(await post('automation',{toggle:{id:'busy',enabled:on}})).config;toast(on?'Aviso de ocupada ligado: quem disser o que precisa recebe a mensagem.':'Aviso de ocupada desligado.');}catch(e){automation=before;toast(e.message);}paint();return;}
     if(name==='reveal'){const input=button.closest('.wa-secret').querySelector('input');input.type=input.type==='password'?'text':'password';button.textContent=(input.type==='password'?'Mostrar ':'Ocultar ')+(button.dataset.label||'chave');button.setAttribute('aria-pressed',String(input.type==='text'));}
@@ -304,7 +311,7 @@ export function createWhatsAppUI(helpers) {
     if(name==='copy-text'){const m=messages.get(button.dataset.id);try{await navigator.clipboard.writeText(m?.body||'');toast('Texto copiado.');}catch{toast('Não foi possível copiar neste navegador.');}}
     if(name==='reply'){const m=messages.get(button.dataset.id);if(!m)return;draft().quote={id:m.id,direction:m.direction,body:m.body||(m.type==='image'?'📷 Foto':m.type==='audio'?'🎤 Áudio':'')};paint();root?.querySelector('[data-form="wa-send"] textarea')?.focus();}
     if(name==='quote-cancel'){draft().quote=null;paint();}
-    if(name==='mode'){const d=draft();if(d.operation)return;d.note=button.dataset.value==='note';if(d.note){d.quote=null;if(d.file){if(d.preview)URL.revokeObjectURL(d.preview);d.file=null;d.preview=null;}}paint();root?.querySelector('[data-form="wa-send"] textarea')?.focus();}
+    if(name==='mode'){const d=draft();if(d.operation)return;d.note=button.dataset.value==='note';const err=root?.querySelector('#wa-compose-error');if(err)err.textContent='';if(d.note){d.quote=null;if(d.file){if(d.preview)URL.revokeObjectURL(d.preview);d.file=null;d.preview=null;}}paint();root?.querySelector('[data-form="wa-send"] textarea')?.focus();}
     if(name==='emoji')toggleEmoji(button);
     if(name==='emoji-pick')insertText(button.dataset.value);
     if(name==='record')await startRecording();
@@ -316,7 +323,7 @@ export function createWhatsAppUI(helpers) {
     if(name==='filter'){filter=button.dataset.value;paint();}
     if(name==='category'){category=button.dataset.value;paint();}
     if(name==='group'){grouped=!grouped;paint();}
-    if(name==='select'){if(recorder)stopRecording(true);selected=button.dataset.id;older=cursors.get(selected)||null;mobileThread=true;loading=false;++generation;controller?.abort();paint();await refresh();root?.querySelector('.wz-who h3')?.focus();}
+    if(name==='select'){if(recorder)stopRecording(true);const err=root?.querySelector('#wa-compose-error');if(err)err.textContent='';selected=button.dataset.id;older=cursors.get(selected)||null;mobileThread=true;loading=false;++generation;controller?.abort();paint();await refresh();root?.querySelector('.wz-who h3')?.focus();}
     if(name==='back'){mobileThread=false;paint();root?.querySelector(`.wz-item[data-id="${CSS.escape(selected)}"]`)?.focus();}
     if(name==='more-threads')await refresh({moreThreads:true});
     if(name==='older')await refresh({moreMessages:true});
@@ -334,7 +341,7 @@ export function createWhatsAppUI(helpers) {
     document.addEventListener('click',event=>{void click(event);});
     document.addEventListener('input',event=>{
       if(event.target.matches?.('[data-wa-input="search"]')){search=event.target.value;paint();return;}
-      if(event.target.closest('[data-form="wa-send"]')&&event.target.name==='text'){draft().text=event.target.value;resize(event.target);const form=event.target.form;const d=draft(),locked=!!d.operation,canRecord=!!recordType();const send=form.querySelector('[type="submit"]'),mic=form.querySelector('.wz-mic');send.hidden=!(d.text.trim()||d.file||locked||!canRecord);mic.hidden=!send.hidden;}
+      if(event.target.closest('[data-form="wa-send"]')&&event.target.name==='text'){draft().text=event.target.value;const err=event.target.form.querySelector('#wa-compose-error');if(err?.textContent)err.textContent='';resize(event.target);const form=event.target.form;const d=draft(),locked=!!d.operation,canRecord=!!recordType();const send=form.querySelector('[type="submit"]'),mic=form.querySelector('.wz-mic');send.hidden=!(d.text.trim()||d.file||locked||!canRecord);mic.hidden=!send.hidden;}
     });
     // Enter envia (no computador). No celular, Enter quebra a linha e o botão envia, como no WhatsApp.
     document.addEventListener('keydown',event=>{

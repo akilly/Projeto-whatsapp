@@ -53,6 +53,19 @@ test('chave guardada só cifrada/hash; chave desconhecida é recusada; QR aparec
   assert.equal((await handleWhatsApp(req('connection', 'POST', { provider: 'baileys', bridgeKey }, 'b'), env)).status, 409, 'a mesma chave não serve para outra conta');
 });
 
+test('desconectar mantém a chave guardada: reconecta sem colar de novo (e nunca expõe a chave)', async () => {
+  const { env } = await setup();
+  assert.equal((await handleWhatsApp(req('connection', 'DELETE'), env)).status, 200);
+  const off = await (await handleWhatsApp(req('connection'), env)).json();
+  assert.equal(off.status, 'disconnected'); assert.equal(off.hasSavedKey, true); assert.ok(!JSON.stringify(off).includes(bridgeKey));
+  const back = await handleWhatsApp(req('connection', 'POST', { provider: 'baileys' }), env);
+  assert.equal(back.status, 200, 'sem digitar a chave');
+  assert.equal((await sync(env, { status: 'pairing' })).status, 200, 'o conector continua com a mesma chave');
+  assert.equal((await (await handleWhatsApp(req('connection'), env)).json()).status, 'pairing');
+  // Sem chave guardada (conta nova), continua exigindo a chave.
+  assert.equal((await handleWhatsApp(req('connection', 'POST', { provider: 'baileys' }, 'b'), env)).status, 400);
+});
+
 test('conectado: número fica vinculado; outro número é desconectado pelo conector', async () => {
   const { env } = await setup();
   const status = await (await handleWhatsApp(req('connection'), env)).json();

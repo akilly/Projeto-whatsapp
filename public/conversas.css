@@ -379,3 +379,14 @@ html .wa-setup p { margin: 8px 0; line-height: 1.5; }
 html .wa-setup .btn { margin: 6px 0; }
 html .wz-list-head { grid-template-columns: minmax(0, 1fr); }
 html .wz-list-head > *, html .wz-chips, html .wz-search { min-width: 0; max-width: 100%; }
+
+/* ---------- Conexão do WhatsApp (Configurações) ---------- */
+html .wa-conn { display: grid; gap: 12px; margin-top: 12px; }
+html .wa-conn-head { align-items: center; }
+html .wa-conn-number { font-weight: 700; font-size: 16px; letter-spacing: .01em; }
+html .wa-conn-actions .btn { max-width: 100%; white-space: normal; text-align: center; }
+html .wa-conn .wa-setup { margin: 0; }
+html .wz-status .btn { margin-left: 6px; }
+html #whatsapp { scroll-margin-top: 90px; }
+html .wz-empty .btn { margin-top: 14px; }
+html .wz-status { flex-wrap: wrap; row-gap: 6px; }

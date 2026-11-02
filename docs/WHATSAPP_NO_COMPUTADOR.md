@@ -45,7 +45,7 @@ No fim aparece o aviso de que a **chave já foi copiada**.
 
 ## 3. Conectar no ateliê e ler o QR Code
 
-1. No ateliê, use os **dados reais** e abra **Atendimentos → WhatsApp → Conectar por QR Code**.
+1. No ateliê, use os **dados reais** e abra **Configurações → WhatsApp → Conectar por QR Code**.
 2. Em **Chave do conector**, aperte **Ctrl+V**. Não envie a chave por chat nem por e-mail.
 3. Confirme. Em alguns segundos aparece o QR Code.
 4. No celular: **WhatsApp → Configurações → Aparelhos conectados → Conectar um aparelho** e leia o código.
@@ -78,9 +78,9 @@ Mostra se a tarefa está rodando, o estado do WhatsApp (conectado, aguardando QR
 
 ## Trocar do número de teste para o número do salão
 
-1. No ateliê: **Atendimentos → WhatsApp → Desconectar**.
+1. No ateliê: **Configurações → WhatsApp → Desconectar**.
 2. No celular de teste: remova o aparelho em **Aparelhos conectados**.
-3. Clique em **Conectar por QR Code** de novo, cole a mesma chave e leia o QR com o celular do salão.
+3. Clique em **Reconectar** (a chave fica guardada; não precisa colar de novo) e leia o QR com o celular do salão.
 
 ## Segurança
 

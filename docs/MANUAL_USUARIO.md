@@ -56,12 +56,14 @@ Orçamentos, tarefas, estoque e serviços são salvos no servidor quando você c
 
 A primeira tela mostra o que merece atenção hoje:
 
-- **Atendimentos pendentes:** quantas conversas do WhatsApp ainda não foram resolvidas. Toque para abrir a caixa de conversas.
-- **Orçamentos em andamento:** os que faltam informações ou estão em avaliação.
-- **Tarefas para hoje** e **atrasadas.**
-- **Estoque baixo:** produtos com saldo igual ou abaixo do mínimo.
+- **Faixa do topo:** quantas tarefas são para hoje, quantas estão atrasadas e quantos orçamentos estão abertos, com os atalhos **Novo orçamento** e **Nova tarefa**.
+- **WhatsApp:** "N conversas pendentes no WhatsApp". Toque para abrir a caixa de conversas.
+- **Atendimentos pendentes:** o mesmo número, em destaque, com a lembrança de que as conversas são separadas por assunto e prioridade.
+- **Tarefas para hoje**, **Tarefas atrasadas**, **Orçamentos avaliados** e **Estoque baixo:** quatro contadores. Toque em **Ver registros** para abrir a lista já filtrada.
+- **Tarefas:** as próximas atividades, com a prioridade de cada uma.
+- **Orçamentos aguardando:** os que faltam informações ou estão em avaliação, e os produtos com estoque baixo.
 
-O atalho **Novo orçamento** e **Nova tarefa** fica no topo da tela.
+O sino no topo junta os alertas prioritários.
 
 ---
 
@@ -223,7 +225,7 @@ Cada automação é um **cartão** com o nome, o gatilho, o tempo de espera, a m
 |---|---|---|
 | **Boas-vindas** | A cliente só cumprimenta | Ligada (espera 2 minutos) |
 | **Estou ocupada** | A cliente diz o que precisa | Desligada |
-| **Fora do horário** | Chega fora do horário de atendimento | Desligada |
+| **Fora do horário** | Chega fora do horário de atendimento (padrão: segunda a sábado, das 9h às 18h) | Desligada |
 | **Pagamento recebido** | O assunto é Pagamento realizado | Desligada |
 
 ### 5.2 Criar uma automação nova
@@ -309,7 +311,7 @@ Ferramentas na ficha:
 - **Criar tarefa:** gera um lembrete ligado ao orçamento.
 - **Abrir conversa:** volta para a conversa de origem.
 
-Use os filtros no topo (Todos, Em andamento, Faltam informações etc.) para achar rápido. **Exportar** gera uma planilha.
+Use os filtros no topo para achar rápido: **Todos**, **Em andamento**, **Faltam informações**, **Em avaliação**, **Avaliados** e **Encerrados**. O botão **Avaliar**, em cada linha, abre a ficha. **Exportar** gera CSV ou PDF.
 
 > A definição do procedimento e do preço é sempre sua. As fotos são organizadas sem análise visual por IA.
 
@@ -317,29 +319,29 @@ Use os filtros no topo (Todos, Em andamento, Faltam informações etc.) para ach
 
 ## 7. Tarefas
 
-Lembretes com **título**, **prazo**, **prioridade** (Alta, Média, Baixa) e **área**.
+Lembretes com **título**, **prazo**, **prioridade** (Alta, Média, Baixa) e **área** (Atendimento, Orçamento, Estoque, Serviços ou Operação).
 
 - Toque no **círculo** para concluir. A tarefa vai para o filtro **Concluídas**.
 - Filtros: **Pendentes**, **Atrasadas**, **Concluídas** e **Todas**.
 - Prazo vencido e não concluída aparece como **atraso**.
 - A tarefa pode guardar o **contato**, o **orçamento** e a **conversa** de origem.
 
-Crie pelo botão **Nova tarefa**, ou dentro de uma conversa com **Criar tarefa** ("Responder Maria" já vem preenchido).
+Crie pelo botão **Nova tarefa**, ou dentro de uma conversa com **Criar tarefa** ("Responder Maria" já vem preenchido). **Exportar** gera CSV ou PDF.
 
 ---
 
 ## 8. Estoque
 
-Controle simples do que você tem, usa e precisa repor. Tudo é lançado à mão, quando acontece.
+Controle simples do que você tem, usa e precisa repor. Tudo é lançado à mão, quando acontece. A tela tem duas abas: **Produtos** (o saldo de cada um) e **Movimentações** (o histórico). Os botões do topo são **Cadastrar produto**, **Registrar entrada** e **Registrar uso**, e **Exportar estoque** gera CSV ou PDF.
 
 1. **Cadastrar produto:** nome, marca, unidade (**g**, **ml** ou **un**), tamanho da embalagem, preço da embalagem (opcional), quantidade que você tem hoje e **estoque mínimo**.
-2. **Entrada:** quando chega produto. O valor pago é opcional; com ele o **custo médio** é atualizado.
+2. **Entrada** (aparece no histórico como *Compra*): quando chega produto. O valor pago é opcional; com ele o **custo médio** é atualizado.
 3. **Uso:** quando você usa o produto. **Perda:** quando algo se perde ou estraga. Ambos reduzem o saldo.
 4. **Conferir custo:** informe o preço atual quando o custo aparecer como **a conferir**.
 
 **Custo a conferir** significa que falta informação de custo: não é tratado como custo zero.
 
-Corrigir um movimento recalcula o saldo e o custo das saídas seguintes. Produtos com saldo **igual ou abaixo do mínimo** aparecem como **Repor** e na Visão geral.
+Os tipos de movimento são **Estoque inicial**, **Compra**, **Uso**, **Perda** e **Custo conferido**. Corrigir um movimento recalcula o saldo e o custo das saídas seguintes. Produtos com saldo **igual ou abaixo do mínimo** aparecem como **Repor** e na Visão geral.
 
 ---
 
@@ -350,6 +352,7 @@ O catálogo do ateliê: **nome**, **descrição**, **duração**, **produtos usa
 - Os serviços aparecem na escolha do orçamento.
 - As orientações ajudam a responder às clientes.
 - Se um serviço for excluído, os orçamentos antigos guardam o nome dele.
+- **Ver detalhes** abre a ficha; **Novo serviço** cria um; **Exportar** gera CSV ou PDF.
 
 ---
 
@@ -361,10 +364,10 @@ O catálogo do ateliê: **nome**, **descrição**, **duração**, **produtos usa
 | **Seu ateliê** | Como prefere ser chamada e o prazo de resposta de referência (em minutos). |
 | **Sua conta** | Trocar e-mail (pede a senha atual) e trocar senha (os outros aparelhos precisam entrar de novo). **Sair da conta.** |
 | **WhatsApp** | Conectar, ler o QR Code, reconectar, trocar de número e desconectar. Aqui (e só aqui) fica a chave do conector. |
-| **Salões** | Para a titular: convidar outro salão. Cada salão tem login e dados próprios, e nenhum vê os dados do outro. O convite vale 7 dias e só pode ser usado uma vez. |
+| **Salões** | Para a titular: convidar outro salão. Cada salão tem login e dados próprios, e nenhum vê os dados do outro. O convite vale 7 dias e só pode ser usado uma vez. Com o envio de e-mail configurado, o link vai por e-mail; sem ele (ou se o e-mail falhar), o sistema mostra o link para você copiar e avisa o motivo da falha. |
 | **Conexões e acesso** | Estado da sincronização, do WhatsApp e da inteligência artificial. |
-| **Exportar e cópia** | **Exportar dados** (CSV ou PDF) e **Cópia completa JSON** com todos os registros. |
-| **Histórico de ações** | As alterações confirmadas, com data e quem fez. |
+| **Exportar e cópia** | **Exportar dados** (CSV ou PDF) e **Cópia completa JSON** com todos os registros. **Restaurar cópia JSON** só aparece quando o sistema está vazio. |
+| **Histórico de ações** | As alterações confirmadas, com data e quem fez. **Histórico completo** mostra todas. |
 
 ### Inteligência artificial
 
@@ -374,7 +377,8 @@ A IA classifica conversas, resume e sugere respostas. Ela **só sugere**: nada �
 
 ## 11. Excluir registros
 
-Use **Excluir registro** no topo de cada tela, ou o botão dentro da ficha. Antes de apagar, o sistema mostra **o que será apagado** e **o que só perde o vínculo**, e pede a **senha da conta**. A exclusão é definitiva.
+- **Orçamentos, tarefas, estoque, serviços:** use **Excluir registro** no topo da tela, ou o botão **Excluir** dentro da ficha. Antes de apagar, o sistema mostra **o que será apagado** e **o que só perde o vínculo**, e pede a **senha da conta**. A exclusão é definitiva.
+- **Conversas e mensagens do WhatsApp:** dentro da conversa, no menu **⋮ → Excluir conversa**, ou no ícone de lixeira de uma mensagem. Isso apaga só do sistema (veja [Excluir uma conversa ou mensagem](#48-excluir-uma-conversa-ou-mensagem)).
 
 ---
 

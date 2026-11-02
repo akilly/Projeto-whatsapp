@@ -45,7 +45,8 @@ O que cada arquivo versionado faz. Cada módulo também tem um comentário de ca
 | `conversas.css` | Visual das conversas (estilo WhatsApp) e do painel Automação |
 | `form-validation.js` | Mensagens de validação em português, sem balões nativos |
 | `theme.js`, `theme-boot.js` | Tema claro/escuro salvo no navegador |
-| `examples.js` | Dados fictícios da demonstração |
+| `examples.js` | Dados fictícios (a demonstração saiu da interface; o arquivo é usado só pelos testes) |
+| `manual.html`, `manual.js` | Manual do usuário em página (gerado por `scripts/build-manual.py` a partir de `docs/MANUAL_USUARIO.md`) |
 | `login.js` | Comportamento da página de entrada |
 | `style.css` → `atelier.css` → `theme.css` → `glass.css` → `refino.css` | Estilos em camadas; `refino.css` é a revisão de layout (vidro, conversas estilo WhatsApp e celular) |
 | `baileys-conector.zip` | Pacote do conector para download (gerado a partir de `services/baileys`) |

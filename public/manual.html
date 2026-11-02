@@ -94,12 +94,14 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:
 <h2 id="2-visao-geral">2. Visão geral</h2>
 <p>A primeira tela mostra o que merece atenção hoje:</p>
 <ul>
-<li><strong>Atendimentos pendentes:</strong> quantas conversas do WhatsApp ainda não foram resolvidas. Toque para abrir a caixa de conversas.</li>
-<li><strong>Orçamentos em andamento:</strong> os que faltam informações ou estão em avaliação.</li>
-<li><strong>Tarefas para hoje</strong> e <strong>atrasadas.</strong></li>
-<li><strong>Estoque baixo:</strong> produtos com saldo igual ou abaixo do mínimo.</li>
+<li><strong>Faixa do topo:</strong> quantas tarefas são para hoje, quantas estão atrasadas e quantos orçamentos estão abertos, com os atalhos <strong>Novo orçamento</strong> e <strong>Nova tarefa</strong>.</li>
+<li><strong>WhatsApp:</strong> "N conversas pendentes no WhatsApp". Toque para abrir a caixa de conversas.</li>
+<li><strong>Atendimentos pendentes:</strong> o mesmo número, em destaque, com a lembrança de que as conversas são separadas por assunto e prioridade.</li>
+<li><strong>Tarefas para hoje</strong>, <strong>Tarefas atrasadas</strong>, <strong>Orçamentos avaliados</strong> e <strong>Estoque baixo:</strong> quatro contadores. Toque em <strong>Ver registros</strong> para abrir a lista já filtrada.</li>
+<li><strong>Tarefas:</strong> as próximas atividades, com a prioridade de cada uma.</li>
+<li><strong>Orçamentos aguardando:</strong> os que faltam informações ou estão em avaliação, e os produtos com estoque baixo.</li>
 </ul>
-<p>O atalho <strong>Novo orçamento</strong> e <strong>Nova tarefa</strong> fica no topo da tela.</p>
+<p>O sino no topo junta os alertas prioritários.</p>
 <hr />
 <h2 id="3-conectar-o-whatsapp">3. Conectar o WhatsApp</h2>
 <p>O Hanne usa o número do seu <strong>WhatsApp Business</strong> por meio de um pequeno programa chamado <strong>conector</strong>, que fica ligado 24 horas (em um servidor gratuito da Oracle ou no computador do ateliê) e conversa com o site. A instalação do conector é feita uma única vez; o passo a passo está em guia de instalação do conector.</p>
@@ -296,7 +298,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:
 </tr>
 <tr>
 <td><strong>Fora do horário</strong></td>
-<td>Chega fora do horário de atendimento</td>
+<td>Chega fora do horário de atendimento (padrão: segunda a sábado, das 9h às 18h)</td>
 <td>Desligada</td>
 </tr>
 <tr>
@@ -451,31 +453,31 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:
 <li><strong>Criar tarefa:</strong> gera um lembrete ligado ao orçamento.</li>
 <li><strong>Abrir conversa:</strong> volta para a conversa de origem.</li>
 </ul>
-<p>Use os filtros no topo (Todos, Em andamento, Faltam informações etc.) para achar rápido. <strong>Exportar</strong> gera uma planilha.</p>
+<p>Use os filtros no topo para achar rápido: <strong>Todos</strong>, <strong>Em andamento</strong>, <strong>Faltam informações</strong>, <strong>Em avaliação</strong>, <strong>Avaliados</strong> e <strong>Encerrados</strong>. O botão <strong>Avaliar</strong>, em cada linha, abre a ficha. <strong>Exportar</strong> gera CSV ou PDF.</p>
 <aside class="callout note">
 <p>A definição do procedimento e do preço é sempre sua. As fotos são organizadas sem análise visual por IA.</p>
 </aside>
 <hr />
 <h2 id="7-tarefas">7. Tarefas</h2>
-<p>Lembretes com <strong>título</strong>, <strong>prazo</strong>, <strong>prioridade</strong> (Alta, Média, Baixa) e <strong>área</strong>.</p>
+<p>Lembretes com <strong>título</strong>, <strong>prazo</strong>, <strong>prioridade</strong> (Alta, Média, Baixa) e <strong>área</strong> (Atendimento, Orçamento, Estoque, Serviços ou Operação).</p>
 <ul>
 <li>Toque no <strong>círculo</strong> para concluir. A tarefa vai para o filtro <strong>Concluídas</strong>.</li>
 <li>Filtros: <strong>Pendentes</strong>, <strong>Atrasadas</strong>, <strong>Concluídas</strong> e <strong>Todas</strong>.</li>
 <li>Prazo vencido e não concluída aparece como <strong>atraso</strong>.</li>
 <li>A tarefa pode guardar o <strong>contato</strong>, o <strong>orçamento</strong> e a <strong>conversa</strong> de origem.</li>
 </ul>
-<p>Crie pelo botão <strong>Nova tarefa</strong>, ou dentro de uma conversa com <strong>Criar tarefa</strong> ("Responder Maria" já vem preenchido).</p>
+<p>Crie pelo botão <strong>Nova tarefa</strong>, ou dentro de uma conversa com <strong>Criar tarefa</strong> ("Responder Maria" já vem preenchido). <strong>Exportar</strong> gera CSV ou PDF.</p>
 <hr />
 <h2 id="8-estoque">8. Estoque</h2>
-<p>Controle simples do que você tem, usa e precisa repor. Tudo é lançado à mão, quando acontece.</p>
+<p>Controle simples do que você tem, usa e precisa repor. Tudo é lançado à mão, quando acontece. A tela tem duas abas: <strong>Produtos</strong> (o saldo de cada um) e <strong>Movimentações</strong> (o histórico). Os botões do topo são <strong>Cadastrar produto</strong>, <strong>Registrar entrada</strong> e <strong>Registrar uso</strong>, e <strong>Exportar estoque</strong> gera CSV ou PDF.</p>
 <ol>
 <li><strong>Cadastrar produto:</strong> nome, marca, unidade (<strong>g</strong>, <strong>ml</strong> ou <strong>un</strong>), tamanho da embalagem, preço da embalagem (opcional), quantidade que você tem hoje e <strong>estoque mínimo</strong>.</li>
-<li><strong>Entrada:</strong> quando chega produto. O valor pago é opcional; com ele o <strong>custo médio</strong> é atualizado.</li>
+<li><strong>Entrada</strong> (aparece no histórico como <em>Compra</em>): quando chega produto. O valor pago é opcional; com ele o <strong>custo médio</strong> é atualizado.</li>
 <li><strong>Uso:</strong> quando você usa o produto. <strong>Perda:</strong> quando algo se perde ou estraga. Ambos reduzem o saldo.</li>
 <li><strong>Conferir custo:</strong> informe o preço atual quando o custo aparecer como <strong>a conferir</strong>.</li>
 </ol>
 <p><strong>Custo a conferir</strong> significa que falta informação de custo: não é tratado como custo zero.</p>
-<p>Corrigir um movimento recalcula o saldo e o custo das saídas seguintes. Produtos com saldo <strong>igual ou abaixo do mínimo</strong> aparecem como <strong>Repor</strong> e na Visão geral.</p>
+<p>Os tipos de movimento são <strong>Estoque inicial</strong>, <strong>Compra</strong>, <strong>Uso</strong>, <strong>Perda</strong> e <strong>Custo conferido</strong>. Corrigir um movimento recalcula o saldo e o custo das saídas seguintes. Produtos com saldo <strong>igual ou abaixo do mínimo</strong> aparecem como <strong>Repor</strong> e na Visão geral.</p>
 <hr />
 <h2 id="9-servicos">9. Serviços</h2>
 <p>O catálogo do ateliê: <strong>nome</strong>, <strong>descrição</strong>, <strong>duração</strong>, <strong>produtos usados</strong> e <strong>orientações antes e depois</strong> do procedimento.</p>
@@ -483,6 +485,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:
 <li>Os serviços aparecem na escolha do orçamento.</li>
 <li>As orientações ajudam a responder às clientes.</li>
 <li>Se um serviço for excluído, os orçamentos antigos guardam o nome dele.</li>
+<li><strong>Ver detalhes</strong> abre a ficha; <strong>Novo serviço</strong> cria um; <strong>Exportar</strong> gera CSV ou PDF.</li>
 </ul>
 <hr />
 <h2 id="10-configuracoes">10. Configurações</h2>
@@ -512,7 +515,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:
 </tr>
 <tr>
 <td><strong>Salões</strong></td>
-<td>Para a titular: convidar outro salão. Cada salão tem login e dados próprios, e nenhum vê os dados do outro. O convite vale 7 dias e só pode ser usado uma vez.</td>
+<td>Para a titular: convidar outro salão. Cada salão tem login e dados próprios, e nenhum vê os dados do outro. O convite vale 7 dias e só pode ser usado uma vez. Com o envio de e-mail configurado, o link vai por e-mail; sem ele (ou se o e-mail falhar), o sistema mostra o link para você copiar e avisa o motivo da falha.</td>
 </tr>
 <tr>
 <td><strong>Conexões e acesso</strong></td>
@@ -520,11 +523,11 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:
 </tr>
 <tr>
 <td><strong>Exportar e cópia</strong></td>
-<td><strong>Exportar dados</strong> (CSV ou PDF) e <strong>Cópia completa JSON</strong> com todos os registros.</td>
+<td><strong>Exportar dados</strong> (CSV ou PDF) e <strong>Cópia completa JSON</strong> com todos os registros. <strong>Restaurar cópia JSON</strong> só aparece quando o sistema está vazio.</td>
 </tr>
 <tr>
 <td><strong>Histórico de ações</strong></td>
-<td>As alterações confirmadas, com data e quem fez.</td>
+<td>As alterações confirmadas, com data e quem fez. <strong>Histórico completo</strong> mostra todas.</td>
 </tr>
 </tbody>
 </table></div>
@@ -532,7 +535,10 @@ footer{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 50px;color:
 <p>A IA classifica conversas, resume e sugere respostas. Ela <strong>só sugere</strong>: nada é enviado sem você. O plano gratuito tem um limite diário; quando acaba, aparece o aviso e a IA volta no dia seguinte. Enquanto isso, o resto do sistema segue funcionando (você pode escolher o assunto à mão).</p>
 <hr />
 <h2 id="11-excluir-registros">11. Excluir registros</h2>
-<p>Use <strong>Excluir registro</strong> no topo de cada tela, ou o botão dentro da ficha. Antes de apagar, o sistema mostra <strong>o que será apagado</strong> e <strong>o que só perde o vínculo</strong>, e pede a <strong>senha da conta</strong>. A exclusão é definitiva.</p>
+<ul>
+<li><strong>Orçamentos, tarefas, estoque, serviços:</strong> use <strong>Excluir registro</strong> no topo da tela, ou o botão <strong>Excluir</strong> dentro da ficha. Antes de apagar, o sistema mostra <strong>o que será apagado</strong> e <strong>o que só perde o vínculo</strong>, e pede a <strong>senha da conta</strong>. A exclusão é definitiva.</li>
+<li><strong>Conversas e mensagens do WhatsApp:</strong> dentro da conversa, no menu <strong>⋮ → Excluir conversa</strong>, ou no ícone de lixeira de uma mensagem. Isso apaga só do sistema (veja <a href="#48-excluir-uma-conversa-ou-mensagem">Excluir uma conversa ou mensagem</a>).</li>
+</ul>
 <hr />
 <h2 id="12-dicas-de-uso">12. Dicas de uso</h2>
 <ul>

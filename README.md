@@ -36,7 +36,7 @@ npm run user:test:create   # cria teste@hanne.local / HanneTeste#2026 só no ban
 npm run local              # http://localhost:8787
 ```
 
-Abra `/?dados=exemplo` para usar a **demonstração** com dados fictícios (isolada da base real).
+A demonstração com dados fictícios foi retirada da interface: o sistema usa sempre os dados reais da conta.
 
 ## Testes e verificação
 
@@ -67,7 +67,7 @@ Detalhes de cada arquivo: [docs/MAPA_ARQUIVOS.md](docs/MAPA_ARQUIVOS.md).
 - **Vários salões:** cada conta é um salão com dados separados. A primeira conta é a titular, que convida os outros salões (Configurações → Salões).
 - **Gravação segura:** o estado é salvo no D1 com revisão otimista e auditoria na mesma transação. Edição concorrente gera conflito explícito, sem perder o rascunho.
 - **Estoque consistente:** o livro de movimentos é refeito a cada gravação; saldo negativo, datas fora de ordem ou custo divergente são recusados no navegador e no servidor. Corrigir um movimento recalcula o custo das saídas seguintes.
-- **Demonstração isolada:** `/?dados=exemplo` usa outra base; a API recusa gravar dados fictícios na base real.
+- **Dados fictícios:** a tela de demonstração foi retirada; a API continua recusando gravar dados fictícios na base real.
 - **Limites:** 3 MB por gravação, 10 mil itens por coleção, até 3 fotos de 500 KB por orçamento.
 - **Formato próprio:** o estado desta versão é o `schema 3`. Ele não é compatível com cópias JSON do sistema completo (que tinham clientes, agenda e financeiro).
 

@@ -359,7 +359,7 @@ function adaptTables() {
     }
 }
 function heading(title, subtitle, actions = '') {
-    if (['services', 'conversations', 'quotes', 'tasks', 'inventory', 'settings'].includes(ui.page)) actions += btn('Excluir registro', 'v12-delete-list', '', 'text');
+    if (['services', 'quotes', 'tasks', 'inventory', 'settings'].includes(ui.page)) actions += btn('Excluir registro', 'v12-delete-list', '', 'text');
     const item = navItems.find(n => n[0] === ui.page), group = ['dashboard', 'conversations', 'quotes', 'tasks'].includes(ui.page) ? 'Seu dia a dia' : 'Gestão do ateliê';
     return `<div class="page-heading"><div><span class="page-kicker">${icon(item?.[1] || 'settings')}${group}</span><h1>${esc(title)}</h1><p>${esc(subtitle)}</p></div>${actions ? `<div class="row wrap">${actions}</div>` : ''}</div>${pageGuide()}`;
 }

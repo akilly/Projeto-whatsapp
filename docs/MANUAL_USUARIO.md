@@ -281,7 +281,7 @@ O seletor **IA ligada/desligada** controla se a IA separa as conversas. Desligad
 ### 5.4 Regras de envio (para não incomodar a cliente)
 
 - Cada automação sai **no máximo uma vez por atendimento**. Um atendimento novo começa quando a cliente volta a escrever depois de **8 horas** sem conversa.
-- Se **você já respondeu** (pelo sistema ou pelo celular), nenhuma automação é enviada naquele atendimento.
+- Se **você já respondeu** (pelo sistema ou pelo celular), as automações de abertura (**Boas-vindas**, **Estou ocupada**, **Fora do horário**, **Contato novo**) não saem naquele atendimento. As de **palavras-chave** e de **assunto** continuam valendo, mas só olham o que a cliente escreveu depois da sua resposta.
 - Depois que uma automação sai, a próxima só pode sair quando a cliente escrever de novo.
 - Conversas classificadas como **spam** não recebem automação.
 - As mensagens automáticas aparecem na conversa com a etiqueta **Automática** e o nome da regra.

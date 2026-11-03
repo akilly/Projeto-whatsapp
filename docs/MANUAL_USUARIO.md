@@ -104,7 +104,7 @@ Com o WhatsApp desconectado, em **Configurações → WhatsApp**:
 3. Leia o QR Code do número novo. A caixa de conversas começa vazia.
 4. Se um dia você reconectar o número antigo, as conversas dele **voltam**. Os números guardados aparecem em Configurações, em "Conversas guardadas de outros números".
 
-Cada conta do Hanne usa **um número por vez**. Para dois números ao mesmo tempo, use um salão (conta) separado para cada um.
+Cada conta do Hanne usa **um número por vez**.
 
 ### Número vinculado
 
@@ -364,7 +364,6 @@ O catálogo do ateliê: **nome**, **descrição**, **duração**, **produtos usa
 | **Seu ateliê** | Como prefere ser chamada e o prazo de resposta de referência (em minutos). |
 | **Sua conta** | Trocar e-mail (pede a senha atual) e trocar senha (os outros aparelhos precisam entrar de novo). **Sair da conta.** |
 | **WhatsApp** | Conectar, ler o QR Code, reconectar, trocar de número e desconectar. Aqui (e só aqui) fica a chave do conector. |
-| **Salões** | Para a titular: convidar outro salão. Cada salão tem login e dados próprios, e nenhum vê os dados do outro. O convite vale 7 dias e só pode ser usado uma vez. Com o envio de e-mail configurado, o link vai por e-mail; sem ele (ou se o e-mail falhar), o sistema mostra o link para você copiar e avisa o motivo da falha. |
 | **Conexões e acesso** | Estado da sincronização, do WhatsApp e da inteligência artificial. |
 | **Exportar e cópia** | **Exportar dados** (CSV ou PDF) e **Cópia completa JSON** com todos os registros. **Restaurar cópia JSON** só aparece quando o sistema está vazio. |
 | **Histórico de ações** | As alterações confirmadas, com data e quem fez. **Histórico completo** mostra todas. |

@@ -109,7 +109,7 @@ html .wz-menu-list { position: absolute; right: 0; top: calc(100% + 6px); z-inde
 html .wz-menu-list .btn { justify-content: flex-start; width: 100%; padding: 8px 10px; gap: 8px; font-size: 13.5px; }
 html .wz-menu-list .btn.danger { color: var(--red); }
 html .wz-menu-list small { padding: 4px 10px 2px; font-size: 11px; }
-html .wz-attach .wz-menu-list { top: auto; bottom: calc(100% + 10px); right: auto; left: -6px; }
+html .wz-attach .wz-menu-list { top: auto; bottom: calc(100% + 10px); left: auto; right: -6px; }
 html .wz-attach .btn input { display: none; }
 html .wz-attach .btn .wz-ic { width: 20px; height: 20px; color: var(--accent); }
 
